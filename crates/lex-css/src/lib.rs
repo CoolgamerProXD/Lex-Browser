@@ -44,6 +44,7 @@ pub enum TokenKind {
 
 /// Tokenizes CSS without discarding source positions.
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn tokenize(source: &str) -> Vec<Token> {
     let bytes = source.as_bytes();
     let mut out = Vec::new();

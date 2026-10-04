@@ -3,7 +3,7 @@ on:
   push:
   pull_request:
 permissions:
-  contents: write
+  contents: read
 jobs:
   rust:
     strategy:
@@ -16,15 +16,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - run: cargo fmt
-      - name: Commit formatting and lockfile
-        shell: bash
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add .
-          git diff --cached --quiet || git commit -m "chore: normalize M6 sources"
-          git push
+      - run: cargo fmt --check
       - name: Check
         shell: bash
         run: |
