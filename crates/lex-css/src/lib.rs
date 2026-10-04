@@ -377,17 +377,14 @@ impl Parser<'_> {
                 break;
             }
             let start = self.here();
-            let name = match self.tokens.get(self.pos).map(|t| &t.kind) {
-                Some(TokenKind::Ident(s)) => {
-                    self.pos += 1;
-                    s.clone()
-                }
-                _ => {
-                    self.error("expected property name", start);
-                    self.recover_decl();
-                    continue;
-                }
+            let Some(TokenKind::Ident(name)) =
+                self.tokens.get(self.pos).map(|token| token.kind.clone())
+            else {
+                self.error("expected property name", start);
+                self.recover_decl();
+                continue;
             };
+            self.pos += 1;
             self.skip_ws();
             if !matches!(
                 self.tokens.get(self.pos).map(|t| &t.kind),
