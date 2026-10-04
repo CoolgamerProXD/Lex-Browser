@@ -819,7 +819,7 @@ mod tests {
             document.remove_child(parent, document.root()),
             Err(DomError::ReferenceNotChild { .. })
         ));
-        assert!(matches!(document.set_attribute(child, "id", "x"), Ok(_)));
+        assert!(document.set_attribute(child, "id", "x").is_ok());
         assert!(matches!(
             document.set_attribute(document.root(), "id", "x"),
             Err(DomError::NotAnElement(_))
