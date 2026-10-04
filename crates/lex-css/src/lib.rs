@@ -206,6 +206,24 @@ pub struct Declaration {
     pub span: SourceSpan,
 }
 
+/// A standalone declaration list, such as the contents of an HTML `style`
+/// attribute, together with recoverable parse diagnostics.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct DeclarationList {
+    pub declarations: Vec<Declaration>,
+    pub errors: Vec<ParseError>,
+}
+
+/// A declaration whose selector matched an element. Style consumers can use
+/// this lossless stream to validate property-specific values before choosing a
+/// winner; the M6 declared-value cascade is implemented on top of it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct MatchedDeclaration {
+    pub declaration: Declaration,
+    pub specificity: Specificity,
+    pub source_order: usize,
+}
+
 /// Common value forms; `Raw` preserves valid future syntax.
 #[derive(Clone, Debug, PartialEq)]
 pub enum CssValue {
@@ -304,6 +322,35 @@ pub fn parse(source: &str) -> Stylesheet {
         errors: p.errors,
     }
 }
+
+/// Parses declarations without requiring a surrounding style rule.
+///
+/// This is used by M7 for HTML `style` attributes and deliberately shares the
+/// same tokenizer, value representation, recovery, and diagnostics as normal
+/// stylesheet declarations.
+#[must_use]
+pub fn parse_declaration_list(source: &str) -> DeclarationList {
+    let mut tokens = tokenize(source);
+    tokens.push(Token {
+        kind: TokenKind::CloseBrace,
+        span: SourceSpan {
+            start: source.len(),
+            end: source.len(),
+        },
+    });
+    let mut parser = Parser {
+        source,
+        tokens,
+        pos: 0,
+        errors: Vec::new(),
+    };
+    let declarations = parser.declarations();
+    DeclarationList {
+        declarations,
+        errors: parser.errors,
+    }
+}
+
 struct Parser<'a> {
     source: &'a str,
     tokens: Vec<Token>,
@@ -468,26 +515,8 @@ fn remove_important(v: &mut Vec<Token>) -> bool {
 fn parse_value(v: &[Token], source: &str) -> CssValue {
     if v.len() == 1 {
         match &v[0].kind {
-            TokenKind::Ident(s) => match s.as_str() {
-                "red" => CssValue::Color(Color {
-                    red: 255,
-                    green: 0,
-                    blue: 0,
-                    alpha: 255,
-                }),
-                "black" => CssValue::Color(Color {
-                    red: 0,
-                    green: 0,
-                    blue: 0,
-                    alpha: 255,
-                }),
-                "white" => CssValue::Color(Color {
-                    red: 255,
-                    green: 255,
-                    blue: 255,
-                    alpha: 255,
-                }),
-                _ => CssValue::Keyword(s.clone()),
+            TokenKind::Ident(s) => {
+                named_color(s).map_or_else(|| CssValue::Keyword(s.clone()), CssValue::Color)
             },
             TokenKind::Hash(h) => {
                 parse_hex(h).map_or_else(|| CssValue::Raw(format!("#{h}")), CssValue::Color)
@@ -522,6 +551,35 @@ fn unit(s: &str) -> Option<LengthUnit> {
         _ => None,
     }
 }
+fn named_color(name: &str) -> Option<Color> {
+    let (red, green, blue, alpha) = match name {
+        "transparent" => (0, 0, 0, 0),
+        "black" => (0, 0, 0, 255),
+        "silver" => (192, 192, 192, 255),
+        "gray" => (128, 128, 128, 255),
+        "white" => (255, 255, 255, 255),
+        "maroon" => (128, 0, 0, 255),
+        "red" => (255, 0, 0, 255),
+        "purple" => (128, 0, 128, 255),
+        "fuchsia" => (255, 0, 255, 255),
+        "green" => (0, 128, 0, 255),
+        "lime" => (0, 255, 0, 255),
+        "olive" => (128, 128, 0, 255),
+        "yellow" => (255, 255, 0, 255),
+        "navy" => (0, 0, 128, 255),
+        "blue" => (0, 0, 255, 255),
+        "teal" => (0, 128, 128, 255),
+        "aqua" => (0, 255, 255, 255),
+        _ => return None,
+    };
+    Some(Color {
+        red,
+        green,
+        blue,
+        alpha,
+    })
+}
+
 fn parse_hex(s: &str) -> Option<Color> {
     let x = u32::from_str_radix(s, 16).ok()?;
     match s.len() {
@@ -531,11 +589,23 @@ fn parse_hex(s: &str) -> Option<Color> {
             blue: u8::try_from(x & 15).ok()? * 17,
             alpha: 255,
         }),
+        4 => Some(Color {
+            red: u8::try_from((x >> 12) & 15).ok()? * 17,
+            green: u8::try_from((x >> 8) & 15).ok()? * 17,
+            blue: u8::try_from((x >> 4) & 15).ok()? * 17,
+            alpha: u8::try_from(x & 15).ok()? * 17,
+        }),
         6 => Some(Color {
             red: u8::try_from((x >> 16) & 255).ok()?,
             green: u8::try_from((x >> 8) & 255).ok()?,
             blue: u8::try_from(x & 255).ok()?,
             alpha: 255,
+        }),
+        8 => Some(Color {
+            red: u8::try_from((x >> 24) & 255).ok()?,
+            green: u8::try_from((x >> 16) & 255).ok()?,
+            blue: u8::try_from((x >> 8) & 255).ok()?,
+            alpha: u8::try_from(x & 255).ok()?,
         }),
         _ => None,
     }
@@ -754,36 +824,73 @@ fn matches_compound(d: &Document, id: NodeId, c: &CompoundSelector) -> bool {
     true
 }
 
-/// Winning declared values after importance, specificity, and source order.
-pub type ComputedStyle = BTreeMap<String, CssValue>;
-/// Computes the cascade foundation for one element (without inheritance or defaults).
+/// Returns matching declarations in deterministic cascade source order.
+///
+/// Property-specific validity is intentionally not decided in `lex-css`.
+/// M7's style engine validates known properties before selecting winners, so
+/// an invalid high-specificity declaration cannot mask an earlier valid one.
 #[must_use]
-pub fn compute_style(document: &Document, element: NodeId, sheets: &[Stylesheet]) -> ComputedStyle {
-    let mut winners: BTreeMap<String, (bool, Specificity, usize, CssValue)> = BTreeMap::new();
+pub fn matching_declarations(
+    document: &Document,
+    element: NodeId,
+    sheets: &[Stylesheet],
+) -> Vec<MatchedDeclaration> {
+    let mut declarations = Vec::new();
     let mut global_order = 0;
     for sheet in sheets {
         for rule in &sheet.rules {
             let specificity = rule
                 .selectors
                 .iter()
-                .filter(|s| matches_selector(document, element, s))
-                .map(|s| s.specificity)
+                .filter(|selector| matches_selector(document, element, selector))
+                .map(|selector| selector.specificity)
                 .max();
-            if let Some(spec) = specificity {
-                for decl in &rule.declarations {
-                    let rank = (decl.important, spec, global_order);
-                    let replace = winners
-                        .get(&decl.name)
-                        .map_or(true, |old| rank >= (old.0, old.1, old.2));
-                    if replace {
-                        winners.insert(
-                            decl.name.clone(),
-                            (decl.important, spec, global_order, decl.value.clone()),
-                        );
+            if let Some(specificity) = specificity {
+                declarations.extend(rule.declarations.iter().cloned().map(|declaration| {
+                    MatchedDeclaration {
+                        declaration,
+                        specificity,
+                        source_order: global_order,
                     }
-                }
+                }));
             }
             global_order += 1;
+        }
+    }
+    declarations
+}
+
+/// Winning declared values after importance, specificity, and source order.
+///
+/// This alias and [`compute_style`] preserve the M6 declared-value API. A full
+/// typed computed style, including inheritance and initial values, lives in
+/// the separate `lex-style` crate.
+pub type ComputedStyle = BTreeMap<String, CssValue>;
+
+/// Computes the M6 declared-value cascade for one element.
+#[must_use]
+pub fn compute_style(document: &Document, element: NodeId, sheets: &[Stylesheet]) -> ComputedStyle {
+    let mut winners: BTreeMap<String, (bool, Specificity, usize, CssValue)> = BTreeMap::new();
+    for matched in matching_declarations(document, element, sheets) {
+        let declaration = matched.declaration;
+        let rank = (
+            declaration.important,
+            matched.specificity,
+            matched.source_order,
+        );
+        let replace = winners
+            .get(&declaration.name)
+            .map_or(true, |old| rank >= (old.0, old.1, old.2));
+        if replace {
+            winners.insert(
+                declaration.name,
+                (
+                    declaration.important,
+                    matched.specificity,
+                    matched.source_order,
+                    declaration.value,
+                ),
+            );
         }
     }
     winners
@@ -804,6 +911,16 @@ mod tests {
             .iter()
             .any(|x| matches!(x.kind,TokenKind::Dimension(10.0,ref u) if u=="px")));
     }
+    #[test]
+    fn standalone_declaration_list_uses_stylesheet_recovery() {
+        let list = parse_declaration_list("color: red; broken; width: 10px !important");
+        assert_eq!(list.declarations.len(), 2);
+        assert_eq!(list.declarations[0].name, "color");
+        assert_eq!(list.declarations[1].name, "width");
+        assert!(list.declarations[1].important);
+        assert_eq!(list.errors.len(), 1);
+    }
+
     #[test]
     fn selectors_and_specificity() {
         let s = parse("main > .card[data-x=yes], #hero { color:red }");
