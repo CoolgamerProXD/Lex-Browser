@@ -20,6 +20,9 @@ The browser chrome communicates with an engine controller; it does not mutate re
 - `lex-net`: validated URLs, document navigation policy, HTTP/HTTPS transport, redirect handling, decoded response limits, and an in-memory freshness cache. It is independent of application, UI, and rendering crates.
 - `lex-html`: Lex-owned tokenizer, character-reference decoder, recovery tree constructor, and arena-backed intermediate document. It has no browser API or platform dependencies.
 - `lex-dom`: authoritative mutable document model with stable arena handles, explicit parent/child relationships, fragments, attributes, traversal, queries, source provenance, and mutation records.
+- `lex-css`: CSS tokenization, recovering parsing, stylesheet data, values, selector matching, specificity, and the declared-value cascade foundation.
+- `lex-style`: property-aware cascade validation, inline declarations, HTML defaults, inheritance, initial values, supported computed-value conversion, typed `ComputedStyle`, and conservative style invalidation.
+- `lex-browser` (in `Lex Browser`): deterministic development executable proving the integrated engine pipeline without coupling engine crates to the native shell.
 
 Windows API access uses the `windows` crate solely for generated Win32 bindings. `DisplayList` supports frame clearing, filled rectangles, text, and balanced rectangular clip scopes. The Windows backend translates those operations to an HWND Direct2D render target and DirectWrite text formats. Future paint and layout crates will depend on display commands rather than native graphics APIs.
 
@@ -55,12 +58,41 @@ The Win32 window owns one boxed `ApplicationState`. Its pointer is attached duri
 6. Cache freshness requires explicit `max-age` in M3. Conditional requests, persistent caching, cookies, and full RFC cache semantics are deliberately deferred rather than represented as complete.
 7. M4 preserves exact whitespace text and merges adjacent text/reference tokens during tree construction. Script and style contents use raw-text handling; title and textarea use RCDATA handling. Parse errors are accumulated rather than fatal.
 8. M5 retains detached nodes for handle stability. Explicit garbage collection and generational handles may be added only when lifecycle requirements are understood.
-9. Mutation records describe facts, not policy. CSS, layout, events, and JavaScript will subscribe or adapt them in later milestones rather than becoming `lex-dom` dependencies.
+9. Mutation records describe facts, not policy. CSS, layout, events, and JavaScript subscribe or adapt them rather than becoming `lex-dom` dependencies.
+10. `lex-css` remains the syntax and matching layer. Property semantics and complete styles live in `lex-style`, preventing the parser from becoming coupled to layout policy.
+11. M7 style invalidation favors correctness: class, ID, other attribute, insertion, removal, and stylesheet changes dirty the complete style snapshot. The invalidation records retain an affected node so later milestones can safely introduce subtree/dependency-based recomputation.
 
-## M6 CSS and style foundations
+## M6 CSS foundations
 
-`lex-css` is platform-neutral and depends only on `lex-dom`. It owns CSS tokenization, recoverable parsing, stylesheet/rule/declaration/value data, selector specificity and matching, and a deterministic declared-value cascade. Selectors are represented as compounds joined by descendant or child combinators. Matching reads stable M5 `NodeId` handles and never owns or mutates DOM nodes.
+`lex-css` is platform-neutral and depends only on `lex-dom`. It owns CSS tokenization, recoverable parsing, stylesheet/rule/declaration/value data, selector specificity and matching, and a deterministic declared-value cascade. Selectors are represented as compounds joined by descendant or child combinators. Matching reads stable M5 `NodeId` handles and never owns or mutates DOM nodes. Source byte spans remain on tokens, rules, selectors, declarations, and diagnostics for future DevTools.
 
-The current pipeline boundary is `HTML → lex-dom Document → lex-css Stylesheet → selector matching → ComputedStyle`. `ComputedStyle` currently means winning declared property values; inheritance, initial values, shorthand expansion, layout-dependent resolution, and rendering are deliberately deferred. Source byte spans are retained on tokens, rules, selectors, declarations, and diagnostics for future DevTools.
+For compatibility, `lex-css::compute_style` still exposes the M6 map of winning declarations. M7 also exposes matching declarations before property-specific validation. This is important because invalid CSS must be discarded before winner selection: an invalid high-specificity value must not hide a valid lower-specificity declaration.
 
-The top-level [`Lex Browser`](Lex%20Browser) package is the durable development executable. Its deterministic built-in page exercises HTML parsing, authoritative DOM conversion, CSS parsing, matching, and computed declared styles without coupling engine crates to a UI.
+## M7 style computation boundary
+
+`lex-style` depends on `lex-css` and `lex-dom`, but neither parser nor DOM depends on it. `StyleEngine` owns author stylesheets and snapshots keyed by stable `NodeId`. A full recomputation walks connected elements in DOM preorder, then performs:
+
+```text
+selector matching → property validation → cascade → specified values
+    → inheritance/initial values → HTML defaults → computed values
+```
+
+`SpecifiedStyle` retains supported winning declarations as ordinary values or the CSS-wide keywords `inherit`, `initial`, and `unset`. `ComputedStyle` is a complete typed record: there is no missing-property state. Central initial values cover display, foreground/background color, sizing, box edges, borders, font data, line height, text alignment, visibility, and opacity. Layout can call `computed_style(node_id)` without parsing declarations, matching selectors, or implementing inheritance.
+
+Lex supplies a small explicit user-agent layer for `html`, `body`, `div`, `p`, headings, `span`, `strong`, `em`, `a`, `ul`, `ol`, and `li`. Author and inline declarations override those defaults through the normal cascade. Inherited properties are color, font family/size/weight, line height, text alignment, and visibility. Non-inherited properties use their central initial value unless an HTML default or winning declaration changes them.
+
+Pixel and font-relative lengths become computed pixels. Font-size percentages resolve against the parent; line-height percentages resolve against the element's computed font size. Percentages requiring a containing block and viewport units remain typed and unresolved for M8. M7 box properties support one-to-four-value shorthands; per-side/logical longhands, CSS variables, functions such as `calc()`, pseudo-classes, and a complete standards UA sheet are deferred rather than represented as complete.
+
+The effective boundary is:
+
+```text
+lex-dom Document + lex-css Stylesheet(s)
+                    ↓
+             lex-style StyleEngine
+                    ↓
+       NodeId → complete ComputedStyle
+                    ↓
+                M8 layout
+```
+
+The top-level [`Lex Browser`](Lex%20Browser) package is the durable development executable. Its M7 page visibly demonstrates cascade and inherited color without coupling the style system to rendering or native UI.

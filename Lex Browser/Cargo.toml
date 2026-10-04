@@ -10,6 +10,7 @@ repository.workspace = true
 [dependencies]
 lex-css = { path = "../crates/lex-css" }
 lex-dom = { path = "../crates/lex-dom" }
+lex-style = { path = "../crates/lex-style" }
 
 [lints]
 workspace = true

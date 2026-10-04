@@ -1,0 +1,15 @@
+[package]
+name = "lex-style"
+description = "Lex-owned cascade, inheritance, and computed-style engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+lex-css = { path = "../lex-css" }
+lex-dom = { path = "../lex-dom" }
+
+[lints]
+workspace = true

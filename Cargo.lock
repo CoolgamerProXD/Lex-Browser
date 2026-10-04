@@ -524,6 +524,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "lex-browser"
+version = "0.1.0"
+dependencies = [
+ "lex-css",
+ "lex-dom",
+ "lex-style",
+]
+
+[[package]]
+name = "lex-css"
+version = "0.1.0"
+dependencies = [
+ "lex-dom",
+]
+
+[[package]]
 name = "lex-dom"
 version = "0.1.0"
 dependencies = [
@@ -550,6 +566,14 @@ name = "lex-render"
 version = "0.1.0"
 dependencies = [
  "windows",
+]
+
+[[package]]
+name = "lex-style"
+version = "0.1.0"
+dependencies = [
+ "lex-css",
+ "lex-dom",
 ]
 
 [[package]]
