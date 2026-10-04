@@ -160,7 +160,10 @@ pub enum NetworkError {
     #[error("redirect loop detected at `{0}`")]
     RedirectLoop(LexUrl),
     #[error("refused HTTPS to HTTP redirect from `{from}` to `{to}`")]
-    InsecureRedirect { from: LexUrl, to: LexUrl },
+    InsecureRedirect {
+        from: Box<LexUrl>,
+        to: Box<LexUrl>,
+    },
     #[error("HTTP transport or TLS validation failed: {0}")]
     Transport(#[source] Box<reqwest::Error>),
     #[error("response declared {declared} bytes, exceeding limit {limit}")]
@@ -252,8 +255,8 @@ impl NetworkClient {
                 let next = current.join(location)?;
                 if current.scheme() == "https" && next.scheme() == "http" {
                     return Err(NetworkError::InsecureRedirect {
-                        from: current,
-                        to: next,
+                        from: Box::new(current),
+                        to: Box::new(next),
                     });
                 }
                 if !visited.insert(next.clone()) {
