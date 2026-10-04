@@ -176,7 +176,7 @@ pub enum NetworkError {
 /// Reusable HTTP client and Lex response cache.
 ///
 /// The underlying client pools connections. Rustls validates certificates
-/// against the platform-independent WebPKI root set; invalid certificates are
+/// against the platform-independent `WebPKI` root set; invalid certificates are
 /// never accepted by configuration in this crate.
 pub struct NetworkClient {
     client: Client,
