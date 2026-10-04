@@ -1,3 +1,5 @@
+use std::fmt::Write as _;
+
 use lex_html::{parse, parse_bytes, Node, Tokenizer};
 
 const BASIC: &str = include_str!("fixtures/basic.html");
@@ -20,7 +22,7 @@ fn representative_fixture_builds_expected_tree() {
 fn large_input_completes_and_preserves_content() {
     let mut source = String::from("<html><body>");
     for index in 0..10_000 {
-        source.push_str(&format!("<p id=p{index}>row {index}</p>"));
+        write!(source, "<p id=p{index}>row {index}</p>").unwrap();
     }
     source.push_str("</body></html>");
     let document = parse(&source);
