@@ -559,8 +559,8 @@ mod tests {
     fn eof_in_constructs_is_recoverable() {
         for source in ["<!-- open", "<!doctype", "<div x='open", "<script>open"] {
             let output = Tokenizer::new(source).tokenize();
-            assert!(!output.tokens.is_empty());
-            assert!(!output.errors.is_empty());
+            assert_ne!(output.tokens.len(), 0);
+            assert_ne!(output.errors.len(), 0);
         }
     }
 }
