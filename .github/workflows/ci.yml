@@ -17,7 +17,13 @@ jobs:
         with:
           components: rustfmt, clippy
       - run: cargo fmt --check
-      - run: cargo check --workspace
+      - name: Check
+        shell: bash
+        run: |
+          if ! cargo check --workspace 2>check-errors.txt; then
+            while IFS= read -r line; do echo "::error::$line"; done < check-errors.txt
+            exit 1
+          fi
       - run: cargo test --workspace
       - name: Clippy
         shell: bash

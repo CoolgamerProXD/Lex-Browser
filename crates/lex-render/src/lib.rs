@@ -145,7 +145,16 @@ impl Error for RenderError {}
 
 /// Consumes Lex display commands. Implementations own platform resources.
 pub trait Renderer {
+    /// Resizes the backend surface.
+    ///
+    /// # Errors
+    /// Returns an error when the native surface cannot be resized.
     fn resize(&mut self, width: u32, height: u32) -> Result<(), RenderError>;
+
+    /// Draws one complete frame from an ordered display list.
+    ///
+    /// # Errors
+    /// Returns an error for an invalid display list or backend drawing failure.
     fn render(&mut self, list: &DisplayList) -> Result<(), RenderError>;
 }
 
