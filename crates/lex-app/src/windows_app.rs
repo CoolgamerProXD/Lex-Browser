@@ -36,8 +36,10 @@ pub(super) fn run() -> Result<()> {
 
     let instance = unsafe { GetModuleHandleW(None)? };
     let class_name = w!("LexBrowserWindow");
+    let class_size = u32::try_from(size_of::<WNDCLASSEXW>())
+        .expect("WNDCLASSEXW size must fit the Win32 cbSize field");
     let class = WNDCLASSEXW {
-        cbSize: size_of::<WNDCLASSEXW>() as u32,
+        cbSize: class_size,
         style: CS_HREDRAW | CS_VREDRAW,
         lpfnWndProc: Some(window_proc),
         hInstance: instance.into(),
