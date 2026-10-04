@@ -7,7 +7,7 @@ use windows::{
                 Common::{D2D1_ALPHA_MODE_UNKNOWN, D2D1_COLOR_F, D2D_RECT_F, D2D_SIZE_U},
                 D2D1CreateFactory, ID2D1Factory, ID2D1HwndRenderTarget, ID2D1RenderTarget,
                 D2D1_ANTIALIAS_MODE_PER_PRIMITIVE, D2D1_FACTORY_TYPE_SINGLE_THREADED,
-                D2D1_HWND_RENDER_TARGET_PROPERTIES, D2D1_PRESENT_OPTIONS_NONE,
+                D2D1_FEATURE_LEVEL, D2D1_HWND_RENDER_TARGET_PROPERTIES, D2D1_PRESENT_OPTIONS_NONE,
                 D2D1_RENDER_TARGET_PROPERTIES, D2D1_RENDER_TARGET_TYPE_DEFAULT,
                 D2D1_RENDER_TARGET_USAGE_NONE,
             },
@@ -48,7 +48,7 @@ impl Direct2DRenderer {
             dpiX: 0.0,
             dpiY: 0.0,
             usage: D2D1_RENDER_TARGET_USAGE_NONE,
-            minLevel: Default::default(),
+            minLevel: D2D1_FEATURE_LEVEL::default(),
         };
         let window_properties = D2D1_HWND_RENDER_TARGET_PROPERTIES {
             hwnd: window,
