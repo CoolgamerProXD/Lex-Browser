@@ -145,20 +145,12 @@ impl Parser {
                     append(&mut document, parent, Node::Comment(data), Some(span));
                 }
                 Token::Text { data, span } => {
-                    append_text(
-                        &mut document,
-                        *open.last().unwrap_or(&document.root),
-                        data,
-                        span,
-                    );
+                    let parent = *open.last().unwrap_or(&document.root);
+                    append_text(&mut document, parent, data, span);
                 }
                 Token::CharacterReference { value, span, .. } => {
-                    append_text(
-                        &mut document,
-                        *open.last().unwrap_or(&document.root),
-                        value,
-                        span,
-                    );
+                    let parent = *open.last().unwrap_or(&document.root);
+                    append_text(&mut document, parent, value, span);
                 }
                 Token::StartTag {
                     name,
