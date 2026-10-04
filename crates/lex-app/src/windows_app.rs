@@ -73,7 +73,7 @@ pub(super) fn run() -> Result<()> {
         )?
     };
     unsafe {
-        ShowWindow(window, SW_SHOW);
+        let _ = ShowWindow(window, SW_SHOW);
     }
 
     let mut message = MSG::default();
