@@ -526,15 +526,15 @@ fn parse_hex(s: &str) -> Option<Color> {
     let x = u32::from_str_radix(s, 16).ok()?;
     match s.len() {
         3 => Some(Color {
-            red: ((x >> 8) & 15) as u8 * 17,
-            green: ((x >> 4) & 15) as u8 * 17,
-            blue: (x & 15) as u8 * 17,
+            red: u8::try_from((x >> 8) & 15).ok()? * 17,
+            green: u8::try_from((x >> 4) & 15).ok()? * 17,
+            blue: u8::try_from(x & 15).ok()? * 17,
             alpha: 255,
         }),
         6 => Some(Color {
-            red: (x >> 16) as u8,
-            green: (x >> 8) as u8,
-            blue: x as u8,
+            red: u8::try_from((x >> 16) & 255).ok()?,
+            green: u8::try_from((x >> 8) & 255).ok()?,
+            blue: u8::try_from(x & 255).ok()?,
             alpha: 255,
         }),
         _ => None,
