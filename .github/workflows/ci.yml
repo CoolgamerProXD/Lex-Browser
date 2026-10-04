@@ -3,24 +3,8 @@ on:
   push:
   pull_request:
 permissions:
-  contents: write
+  contents: read
 jobs:
-  normalize-source:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: arena/01a1055f-lex-browser
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - run: cargo fmt --all && cargo generate-lockfile
-      - run: |
-          if ! git diff --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add . && git commit -m "style: format M4 and update lockfile" && git push
-          fi
   rust:
     strategy:
       fail-fast: false
