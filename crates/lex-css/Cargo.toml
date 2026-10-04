@@ -1,0 +1,14 @@
+[package]
+name = "lex-css"
+description = "Lex-owned CSS parser and style-system foundations"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+lex-dom = { path = "../lex-dom" }
+
+[lints]
+workspace = true

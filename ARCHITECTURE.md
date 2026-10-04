@@ -56,3 +56,11 @@ The Win32 window owns one boxed `ApplicationState`. Its pointer is attached duri
 7. M4 preserves exact whitespace text and merges adjacent text/reference tokens during tree construction. Script and style contents use raw-text handling; title and textarea use RCDATA handling. Parse errors are accumulated rather than fatal.
 8. M5 retains detached nodes for handle stability. Explicit garbage collection and generational handles may be added only when lifecycle requirements are understood.
 9. Mutation records describe facts, not policy. CSS, layout, events, and JavaScript will subscribe or adapt them in later milestones rather than becoming `lex-dom` dependencies.
+
+## M6 CSS and style foundations
+
+`lex-css` is platform-neutral and depends only on `lex-dom`. It owns CSS tokenization, recoverable parsing, stylesheet/rule/declaration/value data, selector specificity and matching, and a deterministic declared-value cascade. Selectors are represented as compounds joined by descendant or child combinators. Matching reads stable M5 `NodeId` handles and never owns or mutates DOM nodes.
+
+The current pipeline boundary is `HTML → lex-dom Document → lex-css Stylesheet → selector matching → ComputedStyle`. `ComputedStyle` currently means winning declared property values; inheritance, initial values, shorthand expansion, layout-dependent resolution, and rendering are deliberately deferred. Source byte spans are retained on tokens, rules, selectors, declarations, and diagnostics for future DevTools.
+
+The top-level [`Lex Browser`](Lex%20Browser) package is the durable development executable. Its deterministic built-in page exercises HTML parsing, authoritative DOM conversion, CSS parsing, matching, and computed declared styles without coupling engine crates to a UI.

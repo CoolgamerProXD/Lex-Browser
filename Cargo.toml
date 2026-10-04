@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/lex-app", "crates/lex-ui", "crates/lex-render", "crates/lex-net", "crates/lex-html", "crates/lex-dom"]
+members = ["crates/lex-app", "crates/lex-ui", "crates/lex-render", "crates/lex-net", "crates/lex-html", "crates/lex-dom", "crates/lex-css", "Lex Browser"]
 resolver = "2"
 
 [workspace.package]
