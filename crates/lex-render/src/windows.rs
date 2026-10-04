@@ -5,7 +5,7 @@ use windows::{
         Graphics::{
             Direct2D::{
                 Common::{D2D1_ALPHA_MODE_UNKNOWN, D2D1_COLOR_F, D2D_RECT_F, D2D_SIZE_U},
-                D2D1CreateFactory, ID2D1Factory, ID2D1HwndRenderTarget,
+                D2D1CreateFactory, ID2D1Factory, ID2D1HwndRenderTarget, ID2D1RenderTarget,
                 D2D1_ANTIALIAS_MODE_PER_PRIMITIVE, D2D1_FACTORY_TYPE_SINGLE_THREADED,
                 D2D1_HWND_RENDER_TARGET_PROPERTIES, D2D1_PRESENT_OPTIONS_NONE,
                 D2D1_RENDER_TARGET_PROPERTIES, D2D1_RENDER_TARGET_TYPE_DEFAULT,
@@ -65,8 +65,9 @@ impl Direct2DRenderer {
     }
 
     fn fill_rect(&self, rect: Rect, color: Color) -> windows::core::Result<()> {
-        let brush = unsafe { self.target.CreateSolidColorBrush(&to_color(color), None)? };
-        unsafe { self.target.FillRectangle(&to_rect(rect), &brush) };
+        let target: ID2D1RenderTarget = self.target.cast()?;
+        let brush = unsafe { target.CreateSolidColorBrush(&to_color(color), None)? };
+        unsafe { target.FillRectangle(&to_rect(rect), &brush) };
         Ok(())
     }
 
@@ -84,10 +85,8 @@ impl Direct2DRenderer {
                 PCWSTR(locale.as_ptr()),
             )?
         };
-        let brush = unsafe {
-            self.target
-                .CreateSolidColorBrush(&to_color(style.color), None)?
-        };
+        let target: ID2D1RenderTarget = self.target.cast()?;
+        let brush = unsafe { target.CreateSolidColorBrush(&to_color(style.color), None)? };
         let text = wide(text);
         unsafe {
             self.target.DrawText(
