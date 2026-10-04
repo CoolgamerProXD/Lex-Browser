@@ -18,8 +18,15 @@ The browser chrome communicates with an engine controller; it does not mutate re
 - `lex-ui`: platform-neutral browser chrome state and presentation copy.
 - `lex-render`: platform-independent display commands and `Renderer` contract, plus the target-gated Direct2D/DirectWrite implementation.
 - `lex-net`: validated URLs, document navigation policy, HTTP/HTTPS transport, redirect handling, decoded response limits, and an in-memory freshness cache. It is independent of application, UI, and rendering crates.
+- `lex-html`: Lex-owned tokenizer, character-reference decoder, recovery tree constructor, and arena-backed intermediate document. It has no browser API or platform dependencies.
 
 Windows API access uses the `windows` crate solely for generated Win32 bindings. `DisplayList` supports frame clearing, filled rectangles, text, and balanced rectangular clip scopes. The Windows backend translates those operations to an HWND Direct2D render target and DirectWrite text formats. Future paint and layout crates will depend on display commands rather than native graphics APIs.
+
+## HTML boundary
+
+M4 accepts decoded response text (or bytes decoded with UTF-8 replacement) and emits an intermediate `Document`. Token spans retain half-open byte offsets for diagnostics and future DevTools. The tokenizer owns tag, attribute, comment, doctype, character-reference, RCDATA, and raw-text recognition. The parser owns parent/child relationships and deterministic recovery for unmatched tags, crossed nesting, paragraphs, list items, and table rows/cells.
+
+The intermediate arena is deliberately not the live DOM: it has stable node IDs and read-only relationships, but no events, mutation, scripting wrappers, style state, or browser globals. M5 can convert it into the DOM without coupling tokenizer correctness to browser APIs. This is an intentionally useful subset rather than a claim of full WHATWG conformance.
 
 ## Navigation and networking
 
@@ -39,3 +46,4 @@ The Win32 window owns one boxed `ApplicationState`. Its pointer is attached duri
 4. Display-list clip scopes are validated before rendering. Malformed command streams return a structured error instead of invoking a backend with invalid clip state.
 5. Networking uses synchronous navigation in M3, but its API is isolated so a network thread/process can own `NetworkClient` later. The Windows event thread must never perform blocking navigation.
 6. Cache freshness requires explicit `max-age` in M3. Conditional requests, persistent caching, cookies, and full RFC cache semantics are deliberately deferred rather than represented as complete.
+7. M4 preserves exact whitespace text and merges adjacent text/reference tokens during tree construction. Script and style contents use raw-text handling; title and textarea use RCDATA handling. Parse errors are accumulated rather than fatal.

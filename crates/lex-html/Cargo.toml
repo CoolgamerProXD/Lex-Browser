@@ -1,0 +1,11 @@
+[package]
+name = "lex-html"
+description = "Lex-owned HTML tokenizer and parser"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
