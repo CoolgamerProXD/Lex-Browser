@@ -200,7 +200,6 @@ impl StyleEngine {
         self.computed.len()
     }
 
-    #[must_use]
     pub fn computed_styles(&self) -> impl Iterator<Item = (NodeId, &ComputedStyle)> {
         self.computed.iter().map(|(node, style)| (*node, style))
     }
