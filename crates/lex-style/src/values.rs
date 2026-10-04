@@ -106,7 +106,9 @@ impl SpecifiedStyle {
 
     #[must_use]
     pub fn iter(&self) -> impl Iterator<Item = (Property, &SpecifiedValue)> {
-        self.values.iter().map(|(property, value)| (*property, value))
+        self.values
+            .iter()
+            .map(|(property, value)| (*property, value))
     }
 
     #[must_use]
@@ -481,10 +483,7 @@ fn size(value: &CssValue, context: &ComputeContext) -> Option<Size> {
     non_negative(length).then_some(Size::Length(length))
 }
 
-fn margin(
-    value: &CssValue,
-    context: &ComputeContext,
-) -> Option<Edges<LengthPercentageAuto>> {
+fn margin(value: &CssValue, context: &ComputeContext) -> Option<Edges<LengthPercentageAuto>> {
     let components = component_values(value)?;
     let values = components
         .iter()
@@ -674,12 +673,8 @@ fn computed_length(value: &CssValue, context: &ComputeContext) -> Option<LengthP
         CssValue::Length(number, LengthUnit::Rem) => {
             Some(LengthPercentage::Px(*number * context.root_font_size))
         }
-        CssValue::Length(number, LengthUnit::Vw) => {
-            Some(LengthPercentage::ViewportWidth(*number))
-        }
-        CssValue::Length(number, LengthUnit::Vh) => {
-            Some(LengthPercentage::ViewportHeight(*number))
-        }
+        CssValue::Length(number, LengthUnit::Vw) => Some(LengthPercentage::ViewportWidth(*number)),
+        CssValue::Length(number, LengthUnit::Vh) => Some(LengthPercentage::ViewportHeight(*number)),
         CssValue::Percentage(number) => Some(LengthPercentage::Percentage(*number)),
         CssValue::Number(number) if *number == 0.0 => Some(LengthPercentage::Px(0.0)),
         _ => None,

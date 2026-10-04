@@ -20,7 +20,7 @@ mod values;
 pub use engine::{InvalidationReason, StyleEngine, StyleInvalidation};
 pub use lex_css::Color;
 pub use values::{
-    BorderStyle, ComputedStyle, Display, Edges, FontWeight, LengthPercentage,
-    LengthPercentageAuto, LineHeight, Property, Size, SpecifiedStyle, SpecifiedValue, TextAlign,
-    Visibility, BLACK, LINK_BLUE, TRANSPARENT,
+    BorderStyle, ComputedStyle, Display, Edges, FontWeight, LengthPercentage, LengthPercentageAuto,
+    LineHeight, Property, Size, SpecifiedStyle, SpecifiedValue, TextAlign, Visibility, BLACK,
+    LINK_BLUE, TRANSPARENT,
 };

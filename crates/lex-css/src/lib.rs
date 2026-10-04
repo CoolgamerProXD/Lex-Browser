@@ -517,7 +517,7 @@ fn parse_value(v: &[Token], source: &str) -> CssValue {
         match &v[0].kind {
             TokenKind::Ident(s) => {
                 named_color(s).map_or_else(|| CssValue::Keyword(s.clone()), CssValue::Color)
-            },
+            }
             TokenKind::Hash(h) => {
                 parse_hex(h).map_or_else(|| CssValue::Raw(format!("#{h}")), CssValue::Color)
             }

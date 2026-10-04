@@ -57,8 +57,5 @@ fn main() {
 }
 
 fn format_color(color: Color) -> String {
-    format!(
-        "#{:02x}{:02x}{:02x}",
-        color.red, color.green, color.blue
-    )
+    format!("#{:02x}{:02x}{:02x}", color.red, color.green, color.blue)
 }

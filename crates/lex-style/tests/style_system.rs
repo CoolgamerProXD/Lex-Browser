@@ -79,10 +79,7 @@ fn inherit_initial_and_unset_have_property_appropriate_behavior() {
         .unwrap();
     assert_eq!(inherited.color, rgb(255, 0, 0));
     assert_eq!(inherited.background_color, rgb(0x11, 0x22, 0x33));
-    assert_eq!(
-        inherited.width,
-        Size::Length(LengthPercentage::Px(80.0))
-    );
+    assert_eq!(inherited.width, Size::Length(LengthPercentage::Px(80.0)));
 
     let initial = engine
         .computed_style(document.element_by_id("initial").unwrap())
@@ -171,7 +168,10 @@ fn typed_values_preserve_layout_dependent_percentages_and_compute_relative_fonts
         .computed_style(document.element_by_id("box").unwrap())
         .unwrap();
     assert_eq!(style.font_size, 30.0);
-    assert_eq!(style.width, Size::Length(LengthPercentage::Percentage(50.0)));
+    assert_eq!(
+        style.width,
+        Size::Length(LengthPercentage::Percentage(50.0))
+    );
     assert_eq!(
         style.height,
         Size::Length(LengthPercentage::ViewportHeight(25.0))
@@ -260,9 +260,7 @@ fn class_id_and_attribute_mutations_trigger_recomputation() {
         Size::Length(LengthPercentage::Px(20.0))
     );
 
-    let records = document
-        .set_attribute(target, "data-ready", "yes")
-        .unwrap();
+    let records = document.set_attribute(target, "data-ready", "yes").unwrap();
     assert_eq!(
         engine.note_mutations(&records)[0].reason,
         InvalidationReason::AttributeChanged
@@ -298,10 +296,7 @@ fn insertion_removal_and_stylesheet_changes_refresh_the_snapshot() {
     assert!(engine.computed_style(child).is_none());
 
     let invalidation = engine.replace_stylesheets(vec![parse("div { color: blue }")]);
-    assert_eq!(
-        invalidation.reason,
-        InvalidationReason::StylesheetChanged
-    );
+    assert_eq!(invalidation.reason, InvalidationReason::StylesheetChanged);
     engine.recompute(&document);
     assert_eq!(engine.computed_style(parent).unwrap().color, rgb(0, 0, 255));
 }
