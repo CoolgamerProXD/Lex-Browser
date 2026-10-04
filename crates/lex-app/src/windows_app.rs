@@ -6,17 +6,16 @@ use windows::{
     core::{w, Error, Result},
     Win32::{
         Foundation::{HWND, LPARAM, LRESULT, WPARAM},
-        Graphics::Gdi::{BeginPaint, EndPaint, HBRUSH, PAINTSTRUCT, COLOR_WINDOW},
+        Graphics::Gdi::{BeginPaint, EndPaint, COLOR_WINDOW, HBRUSH, PAINTSTRUCT},
         System::LibraryLoader::GetModuleHandleW,
         UI::{
             HiDpi::{SetProcessDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2},
             WindowsAndMessaging::{
                 CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW,
                 PostQuitMessage, RegisterClassExW, ShowWindow, TranslateMessage, CREATESTRUCTW,
-                CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, IDC_ARROW,
-                MSG, SW_SHOW, WINDOW_EX_STYLE, WM_CREATE, WM_DESTROY, WM_KEYDOWN, WM_MOUSEMOVE,
-                WM_NCCREATE, WM_NCDESTROY, WM_PAINT, WM_SIZE, WNDCLASSEXW, WS_OVERLAPPEDWINDOW,
-                WS_VISIBLE,
+                CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, IDC_ARROW, MSG, SW_SHOW,
+                WINDOW_EX_STYLE, WM_CREATE, WM_DESTROY, WM_KEYDOWN, WM_MOUSEMOVE, WM_NCCREATE,
+                WM_NCDESTROY, WM_PAINT, WM_SIZE, WNDCLASSEXW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
             },
         },
     },
