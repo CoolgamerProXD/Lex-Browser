@@ -352,7 +352,7 @@ impl Parser<'_> {
         self.errors.push(ParseError {
             message: msg.into(),
             span: SourceSpan { start: at, end: at },
-        })
+        });
     }
     fn recover_rule(&mut self) {
         while self.pos < self.tokens.len()
