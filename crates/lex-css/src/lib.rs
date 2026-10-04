@@ -599,15 +599,15 @@ fn parse_selector(input: &[Token], _source: &str) -> Option<Selector> {
             }
             TokenKind::Delim('*') if !has => {
                 current.universal = true;
-                has = true
+                has = true;
             }
             TokenKind::Ident(s) if !has => {
                 current.type_selector = Some(s.clone());
-                has = true
+                has = true;
             }
             TokenKind::Hash(s) => {
                 current.id = Some(s.clone());
-                has = true
+                has = true;
             }
             TokenKind::Delim('.') => {
                 i += 1;
@@ -617,7 +617,7 @@ fn parse_selector(input: &[Token], _source: &str) -> Option<Selector> {
                 }) = t.get(i)
                 {
                     current.classes.push(s.clone());
-                    has = true
+                    has = true;
                 } else {
                     return None;
                 }
@@ -656,7 +656,7 @@ fn parse_selector(input: &[Token], _source: &str) -> Option<Selector> {
                     return None;
                 }
                 current.attributes.push(AttributeSelector { name, value });
-                has = true
+                has = true;
             }
             _ => return None,
         }
