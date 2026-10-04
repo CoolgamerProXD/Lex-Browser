@@ -27,6 +27,8 @@ jobs:
             exit 1
           fi
       - run: cargo test --workspace
+      - name: Run M7 pipeline demo
+        run: cargo run -p lex-browser
       - name: Clippy
         shell: bash
         run: |

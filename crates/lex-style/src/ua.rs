@@ -8,7 +8,7 @@ use crate::{
 pub(crate) fn apply_primary_defaults(style: &mut ComputedStyle, tag_name: &str) {
     match tag_name {
         "html" | "body" | "div" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "ul" | "ol" => {
-            style.display = Display::Block
+            style.display = Display::Block;
         }
         "li" => style.display = Display::ListItem,
         "span" | "strong" | "em" | "a" => style.display = Display::Inline,
