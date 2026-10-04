@@ -11,7 +11,10 @@ fn fixture_flows_from_html_through_dom_and_style() {
     assert!(stylesheet.errors.is_empty());
     let title = document.element_by_id("title").unwrap();
     let style = compute_style(&document, title, &[stylesheet]);
-    assert_eq!(style["font-size"], CssValue::Length(24.0, lex_css::LengthUnit::Px));
+    assert_eq!(
+        style["font-size"],
+        CssValue::Length(24.0, lex_css::LengthUnit::Px)
+    );
     assert_eq!(style["display"], CssValue::Keyword("block".into()));
 }
 
@@ -20,9 +23,20 @@ fn source_order_specificity_and_importance_are_deterministic() {
     let document = Document::from_html_bytes(HTML).unwrap();
     let title = document.element_by_id("title").unwrap();
     let sheet = parse("#title { color: red } .title { color: black !important } .title { display:block } .title { display:inline }");
-    assert_eq!(sheet.rules[0].selectors[0].specificity, Specificity(1, 0, 0));
+    assert_eq!(
+        sheet.rules[0].selectors[0].specificity,
+        Specificity(1, 0, 0)
+    );
     let style = compute_style(&document, title, &[sheet]);
-    assert_eq!(style["color"], CssValue::Color(lex_css::Color { red: 0, green: 0, blue: 0, alpha: 255 }));
+    assert_eq!(
+        style["color"],
+        CssValue::Color(lex_css::Color {
+            red: 0,
+            green: 0,
+            blue: 0,
+            alpha: 255
+        })
+    );
     assert_eq!(style["display"], CssValue::Keyword("inline".into()));
 }
 
@@ -30,6 +44,9 @@ fn source_order_specificity_and_importance_are_deterministic() {
 fn malformed_fixture_recovers_without_panicking() {
     let sheet = parse("h1 { color red; width: 10px; } [ { bad:yes } p { display:block }");
     assert!(!sheet.errors.is_empty());
-    assert!(sheet.rules.iter().any(|rule| rule.declarations.iter().any(|d| d.name == "display")));
+    assert!(sheet
+        .rules
+        .iter()
+        .any(|rule| rule.declarations.iter().any(|d| d.name == "display")));
     assert!(!tokenize("/* unfinished").iter().any(|_| false));
 }

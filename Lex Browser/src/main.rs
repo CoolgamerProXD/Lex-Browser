@@ -10,9 +10,16 @@ fn main() {
     let stylesheet = parse(CSS);
     println!("Lex Browser — M6 pipeline demo");
     println!("HTML → DOM: {} nodes", document.node_count());
-    println!("CSS: {} rules, {} recoverable errors", stylesheet.rules.len(), stylesheet.errors.len());
+    println!(
+        "CSS: {} rules, {} recoverable errors",
+        stylesheet.rules.len(),
+        stylesheet.errors.len()
+    );
     println!("Computed styles:");
-    for id in document.preorder(document.root()).expect("document root must exist") {
+    for id in document
+        .preorder(document.root())
+        .expect("document root must exist")
+    {
         if let Some(record) = document.node(id) {
             if let Node::Element(element) = &record.node {
                 let style = compute_style(&document, id, std::slice::from_ref(&stylesheet));
