@@ -33,8 +33,7 @@ impl Direct2DRenderer {
     /// Creates a hardware-accelerated render target associated with `window`.
     pub fn new(window: HWND, width: u32, height: u32) -> Result<Self, RenderError> {
         let factory: ID2D1Factory = unsafe {
-            D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, None)
-                .map_err(render_error)?
+            D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, None).map_err(render_error)?
         };
         let target_properties = D2D1_RENDER_TARGET_PROPERTIES {
             r#type: D2D1_RENDER_TARGET_TYPE_DEFAULT,
@@ -57,10 +56,12 @@ impl Direct2DRenderer {
                 .CreateHwndRenderTarget(&target_properties, &window_properties)
                 .map_err(render_error)?
         };
-        let write_factory: IDWriteFactory = unsafe {
-            DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED).map_err(render_error)?
-        };
-        Ok(Self { target, write_factory })
+        let write_factory: IDWriteFactory =
+            unsafe { DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED).map_err(render_error)? };
+        Ok(Self {
+            target,
+            write_factory,
+        })
     }
 
     fn fill_rect(&self, rect: Rect, color: Color) -> windows::core::Result<()> {
@@ -69,12 +70,7 @@ impl Direct2DRenderer {
         Ok(())
     }
 
-    fn draw_text(
-        &self,
-        text: &str,
-        bounds: Rect,
-        style: &TextStyle,
-    ) -> windows::core::Result<()> {
+    fn draw_text(&self, text: &str, bounds: Rect, style: &TextStyle) -> windows::core::Result<()> {
         let family = wide(&style.family);
         let locale = wide("en-us");
         let format = unsafe {
@@ -133,14 +129,10 @@ impl Renderer for Direct2DRenderer {
                     text,
                     bounds,
                     style,
-                } => self
-                    .draw_text(text, *bounds, style)
-                    .map_err(render_error)?,
+                } => self.draw_text(text, *bounds, style).map_err(render_error)?,
                 DisplayCommand::PushClip(rect) => unsafe {
-                    self.target.PushAxisAlignedClip(
-                        &to_rect(*rect),
-                        D2D1_ANTIALIAS_MODE_PER_PRIMITIVE,
-                    );
+                    self.target
+                        .PushAxisAlignedClip(&to_rect(*rect), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
                 },
                 DisplayCommand::PopClip => unsafe { self.target.PopAxisAlignedClip() },
             }

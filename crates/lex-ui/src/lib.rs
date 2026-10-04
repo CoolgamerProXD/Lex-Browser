@@ -19,11 +19,15 @@ impl Default for ChromeState {
 impl ChromeState {
     /// The product name rendered in the client area.
     #[must_use]
-    pub fn title(&self) -> &str { &self.title }
+    pub fn title(&self) -> &str {
+        &self.title
+    }
 
     /// Current startup status rendered below the product name.
     #[must_use]
-    pub fn status(&self) -> &str { &self.status }
+    pub fn status(&self) -> &str {
+        &self.status
+    }
 }
 
 #[cfg(test)]

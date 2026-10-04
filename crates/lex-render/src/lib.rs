@@ -20,12 +20,22 @@ impl Color {
 
     #[must_use]
     pub const fn rgb(red: f32, green: f32, blue: f32) -> Self {
-        Self { red, green, blue, alpha: 1.0 }
+        Self {
+            red,
+            green,
+            blue,
+            alpha: 1.0,
+        }
     }
 
     #[must_use]
     pub const fn rgba(red: f32, green: f32, blue: f32, alpha: f32) -> Self {
-        Self { red, green, blue, alpha }
+        Self {
+            red,
+            green,
+            blue,
+            alpha,
+        }
     }
 }
 
@@ -41,7 +51,12 @@ pub struct Rect {
 impl Rect {
     #[must_use]
     pub const fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
-        Self { x, y, width, height }
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
     }
 }
 
@@ -55,7 +70,11 @@ pub struct TextStyle {
 
 impl Default for TextStyle {
     fn default() -> Self {
-        Self { family: "Segoe UI".into(), size: 16.0, color: Color::LEX_INK }
+        Self {
+            family: "Segoe UI".into(),
+            size: 16.0,
+            color: Color::LEX_INK,
+        }
     }
 }
 
@@ -63,8 +82,15 @@ impl Default for TextStyle {
 #[derive(Clone, Debug, PartialEq)]
 pub enum DisplayCommand {
     Clear(Color),
-    FillRect { rect: Rect, color: Color },
-    DrawText { text: String, bounds: Rect, style: TextStyle },
+    FillRect {
+        rect: Rect,
+        color: Color,
+    },
+    DrawText {
+        text: String,
+        bounds: Rect,
+        style: TextStyle,
+    },
     PushClip(Rect),
     PopClip,
 }
@@ -77,12 +103,18 @@ pub struct DisplayList {
 
 impl DisplayList {
     #[must_use]
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-    pub fn push(&mut self, command: DisplayCommand) { self.commands.push(command); }
+    pub fn push(&mut self, command: DisplayCommand) {
+        self.commands.push(command);
+    }
 
     #[must_use]
-    pub fn commands(&self) -> &[DisplayCommand] { &self.commands }
+    pub fn commands(&self) -> &[DisplayCommand] {
+        &self.commands
+    }
 
     #[must_use]
     pub fn clip_depth_is_balanced(&self) -> bool {

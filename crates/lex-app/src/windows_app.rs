@@ -1,8 +1,6 @@
 use std::mem::size_of;
 
-use lex_render::{
-    Color, Direct2DRenderer, DisplayCommand, DisplayList, Rect, Renderer, TextStyle,
-};
+use lex_render::{Color, Direct2DRenderer, DisplayCommand, DisplayList, Rect, Renderer, TextStyle};
 use lex_ui::ChromeState;
 use windows::{
     core::{w, Error, Result},
@@ -11,16 +9,14 @@ use windows::{
         Graphics::Gdi::{BeginPaint, EndPaint, HBRUSH, PAINTSTRUCT},
         System::LibraryLoader::GetModuleHandleW,
         UI::{
-            HiDpi::{
-                SetProcessDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
-            },
+            HiDpi::{SetProcessDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2},
             WindowsAndMessaging::{
                 CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW,
                 PostQuitMessage, RegisterClassExW, ShowWindow, TranslateMessage, COLOR_WINDOW,
                 CREATESTRUCTW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, IDC_ARROW,
                 MSG, SW_SHOW, WINDOW_EX_STYLE, WM_CREATE, WM_DESTROY, WM_KEYDOWN, WM_MOUSEMOVE,
-                WM_NCCREATE, WM_NCDESTROY, WM_PAINT, WM_SIZE, WNDCLASSEXW,
-                WS_OVERLAPPEDWINDOW, WS_VISIBLE,
+                WM_NCCREATE, WM_NCDESTROY, WM_PAINT, WM_SIZE, WNDCLASSEXW, WS_OVERLAPPEDWINDOW,
+                WS_VISIBLE,
             },
         },
     },
@@ -186,7 +182,9 @@ fn bootstrap_display_list() -> DisplayList {
     let chrome = ChromeState::default();
     let mut list = DisplayList::new();
     list.push(DisplayCommand::Clear(Color::WHITE));
-    list.push(DisplayCommand::PushClip(Rect::new(32.0, 32.0, 700.0, 120.0)));
+    list.push(DisplayCommand::PushClip(Rect::new(
+        32.0, 32.0, 700.0, 120.0,
+    )));
     list.push(DisplayCommand::FillRect {
         rect: Rect::new(32.0, 38.0, 4.0, 76.0),
         color: Color::rgb(0.20, 0.42, 0.92),

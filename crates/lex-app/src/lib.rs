@@ -3,7 +3,10 @@
 
 /// Last known pointer position in device-independent client coordinates.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct PointerPosition { pub x: i32, pub y: i32 }
+pub struct PointerPosition {
+    pub x: i32,
+    pub y: i32,
+}
 
 /// State owned by one top-level Lex window.
 #[derive(Debug, Default)]
@@ -14,12 +17,27 @@ pub struct ApplicationState {
 }
 
 impl ApplicationState {
-    pub fn resized(&mut self, width: u32, height: u32) { self.client_size = (width, height); }
-    pub fn pointer_moved(&mut self, x: i32, y: i32) { self.pointer = PointerPosition { x, y }; }
-    pub fn key_pressed(&mut self, virtual_key: u16) { self.last_key = Some(virtual_key); }
-    #[must_use] pub fn client_size(&self) -> (u32, u32) { self.client_size }
-    #[must_use] pub fn pointer(&self) -> PointerPosition { self.pointer }
-    #[must_use] pub fn last_key(&self) -> Option<u16> { self.last_key }
+    pub fn resized(&mut self, width: u32, height: u32) {
+        self.client_size = (width, height);
+    }
+    pub fn pointer_moved(&mut self, x: i32, y: i32) {
+        self.pointer = PointerPosition { x, y };
+    }
+    pub fn key_pressed(&mut self, virtual_key: u16) {
+        self.last_key = Some(virtual_key);
+    }
+    #[must_use]
+    pub fn client_size(&self) -> (u32, u32) {
+        self.client_size
+    }
+    #[must_use]
+    pub fn pointer(&self) -> PointerPosition {
+        self.pointer
+    }
+    #[must_use]
+    pub fn last_key(&self) -> Option<u16> {
+        self.last_key
+    }
 }
 
 #[cfg(windows)]
@@ -27,7 +45,9 @@ mod windows_app;
 
 /// Run the platform application.
 #[cfg(windows)]
-pub fn run() -> Result<(), String> { windows_app::run().map_err(|error| error.to_string()) }
+pub fn run() -> Result<(), String> {
+    windows_app::run().map_err(|error| error.to_string())
+}
 
 /// Explains the target requirement when invoked on a development host.
 #[cfg(not(windows))]
