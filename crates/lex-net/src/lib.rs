@@ -162,7 +162,7 @@ pub enum NetworkError {
     #[error("refused HTTPS to HTTP redirect from `{from}` to `{to}`")]
     InsecureRedirect { from: LexUrl, to: LexUrl },
     #[error("HTTP transport or TLS validation failed: {0}")]
-    Transport(#[source] reqwest::Error),
+    Transport(#[source] Box<reqwest::Error>),
     #[error("response declared {declared} bytes, exceeding limit {limit}")]
     OversizedResponse { declared: u64, limit: usize },
     #[error("decoded response exceeded limit {limit}")]
@@ -195,7 +195,7 @@ impl NetworkClient {
             .redirect(reqwest::redirect::Policy::none())
             .user_agent(concat!("Lex/", env!("CARGO_PKG_VERSION")))
             .build()
-            .map_err(NetworkError::Transport)?;
+            .map_err(|error| NetworkError::Transport(Box::new(error)))?;
         Ok(Self {
             client,
             cache: Arc::new(Mutex::new(ResponseCache::default())),
@@ -235,7 +235,7 @@ impl NetworkClient {
                 .get(current.as_str())
                 .headers(request.headers.clone())
                 .send()
-                .map_err(NetworkError::Transport)?;
+                .map_err(|error| NetworkError::Transport(Box::new(error)))?;
 
             if is_redirect(response.status()) {
                 if redirect_chain.len() >= request.redirect_limit {
