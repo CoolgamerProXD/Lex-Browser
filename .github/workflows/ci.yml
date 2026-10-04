@@ -21,7 +21,9 @@ jobs:
         shell: bash
         run: |
           if ! cargo check --workspace 2>check-errors.txt; then
-            while IFS= read -r line; do echo "::error::$line"; done < check-errors.txt
+            grep -E "error(\\[|:)|-->|^[[:space:]]*\\|" check-errors.txt | while IFS= read -r line; do
+              echo "::error::$line"
+            done
             exit 1
           fi
       - run: cargo test --workspace

@@ -44,12 +44,18 @@ impl ApplicationState {
 mod windows_app;
 
 /// Run the platform application.
+///
+/// # Errors
+/// Returns an error when native window or renderer initialization fails.
 #[cfg(windows)]
 pub fn run() -> Result<(), String> {
     windows_app::run().map_err(|error| error.to_string())
 }
 
 /// Explains the target requirement when invoked on a development host.
+///
+/// # Errors
+/// Always returns an error because the native shell requires Windows.
 #[cfg(not(windows))]
 pub fn run() -> Result<(), String> {
     Err("Lex's native shell requires Windows 10 or newer".into())
