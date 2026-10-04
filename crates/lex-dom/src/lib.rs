@@ -2,7 +2,7 @@
 //!
 //! Nodes live in a document-owned arena and refer to one another by stable
 //! [`NodeId`] values. This avoids reference cycles and gives future style,
-//! event, script, and DevTools systems durable handles.
+//! event, script, and `DevTools` systems durable handles.
 
 use std::collections::HashSet;
 
