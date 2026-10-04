@@ -2,7 +2,7 @@
 
 Lex is an experimental native Windows browser and browser engine written in Rust. Its long-term goal is to own the HTML → DOM → style → layout → paint pipeline rather than embedding Chromium, WebView2, or another browser engine.
 
-> **Status:** Milestones M0–M4. The native shell, renderer, networking layer, and Lex-owned HTML tokenizer/parser work; live DOM and page rendering are not yet supported.
+> **Status:** Milestones M0–M5. The native shell, renderer, networking, HTML parser, and mutable Lex-owned DOM work; CSS and page rendering are not yet supported.
 
 ## Current capabilities
 
@@ -12,6 +12,7 @@ Lex is an experimental native Windows browser and browser engine written in Rust
 - Platform-neutral UI and application state with unit tests.
 - Independent HTTP/HTTPS navigation layer with validated URLs, TLS certificate validation, redirects, compression, bounded bodies, connection pooling, and basic response caching.
 - Lex-owned HTML tokenization, entities, attributes, raw text, malformed-markup recovery, and an arena-backed intermediate document tree.
+- Mutable Lex-owned DOM with stable node handles, fragments, attributes, traversal, queries, source spans, validation, and explicit mutation records.
 
 ## Build
 
