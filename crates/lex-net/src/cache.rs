@@ -1,4 +1,7 @@
-use std::{collections::HashMap, time::{Duration, SystemTime}};
+use std::{
+    collections::HashMap,
+    time::{Duration, SystemTime},
+};
 
 use reqwest::header::{CACHE_CONTROL, EXPIRES};
 
@@ -107,13 +110,23 @@ mod tests {
         let entry = CacheEntry::from_response(&response("public, max-age=60"), now).unwrap();
         let mut cache = ResponseCache::default();
         cache.insert(url.clone(), entry);
-        assert!(cache.get_fresh(&url, now + Duration::from_secs(59)).unwrap().from_cache);
-        assert!(cache.get_fresh(&url, now + Duration::from_secs(61)).is_none());
+        assert!(
+            cache
+                .get_fresh(&url, now + Duration::from_secs(59))
+                .unwrap()
+                .from_cache
+        );
+        assert!(cache
+            .get_fresh(&url, now + Duration::from_secs(61))
+            .is_none());
     }
 
     #[test]
     fn no_store_and_missing_freshness_are_not_cached() {
-        assert!(CacheEntry::from_response(&response("no-store, max-age=60"), SystemTime::now()).is_none());
+        assert!(
+            CacheEntry::from_response(&response("no-store, max-age=60"), SystemTime::now())
+                .is_none()
+        );
         assert!(CacheEntry::from_response(&response("public"), SystemTime::now()).is_none());
     }
 }

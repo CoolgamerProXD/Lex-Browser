@@ -344,13 +344,22 @@ mod tests {
 
     #[test]
     fn rejects_relative_and_privileged_urls() {
-        assert!(matches!(LexUrl::parse("/relative"), Err(NetworkError::MalformedUrl { .. })));
-        assert!(matches!(LexUrl::parse("file:///secret"), Err(NetworkError::UnsupportedScheme(_))));
+        assert!(matches!(
+            LexUrl::parse("/relative"),
+            Err(NetworkError::MalformedUrl { .. })
+        ));
+        assert!(matches!(
+            LexUrl::parse("file:///secret"),
+            Err(NetworkError::UnsupportedScheme(_))
+        ));
     }
 
     #[test]
     fn resolves_relative_redirects() {
         let base = LexUrl::parse("https://example.test/one/page").unwrap();
-        assert_eq!(base.join("../two").unwrap().as_str(), "https://example.test/two");
+        assert_eq!(
+            base.join("../two").unwrap().as_str(),
+            "https://example.test/two"
+        );
     }
 }

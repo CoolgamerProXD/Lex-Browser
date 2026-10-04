@@ -6,9 +6,7 @@ use std::{
 };
 
 use flate2::{write::GzEncoder, Compression};
-use lex_net::{
-    HeaderName, HeaderValue, LexUrl, NavigationRequest, NetworkClient, NetworkError,
-};
+use lex_net::{HeaderName, HeaderValue, LexUrl, NavigationRequest, NetworkClient, NetworkError};
 
 fn read_request(stream: &mut TcpStream) -> String {
     let mut bytes = Vec::new();
@@ -43,7 +41,8 @@ where
 }
 
 fn response(status: &str, headers: &[(&str, &str)], body: &[u8]) -> Vec<u8> {
-    let mut result = format!("HTTP/1.1 {status}\r\nContent-Length: {}\r\n", body.len()).into_bytes();
+    let mut result =
+        format!("HTTP/1.1 {status}\r\nContent-Length: {}\r\n", body.len()).into_bytes();
     for (name, value) in headers {
         result.extend_from_slice(format!("{name}: {value}\r\n").as_bytes());
     }
@@ -70,7 +69,11 @@ fn sends_headers_and_returns_response_metadata() {
     server.join().unwrap();
     assert_eq!(result.status, 200);
     assert_eq!(result.body, b"hello lex");
-    assert!(captured.lock().unwrap().to_ascii_lowercase().contains("x-lex-test: present"));
+    assert!(captured
+        .lock()
+        .unwrap()
+        .to_ascii_lowercase()
+        .contains("x-lex-test: present"));
 }
 
 #[test]
@@ -84,7 +87,9 @@ fn follows_relative_redirect_and_records_chain() {
     });
     let result = NetworkClient::new()
         .unwrap()
-        .navigate(&NavigationRequest::get(LexUrl::parse(&format!("{base}/start")).unwrap()))
+        .navigate(&NavigationRequest::get(
+            LexUrl::parse(&format!("{base}/start")).unwrap(),
+        ))
         .unwrap();
     server.join().unwrap();
     assert_eq!(result.body, b"arrived");
@@ -100,7 +105,9 @@ fn detects_redirect_loop() {
     });
     let error = NetworkClient::new()
         .unwrap()
-        .navigate(&NavigationRequest::get(LexUrl::parse(&format!("{base}/one")).unwrap()))
+        .navigate(&NavigationRequest::get(
+            LexUrl::parse(&format!("{base}/one")).unwrap(),
+        ))
         .unwrap_err();
     server.join().unwrap();
     assert!(matches!(error, NetworkError::RedirectLoop(_)));
@@ -127,7 +134,10 @@ fn enforces_decoded_response_limit() {
     let (base, server) = serve(1, |_, _| response("200 OK", &[], b"0123456789"));
     let mut request = NavigationRequest::get(LexUrl::parse(&base).unwrap());
     request.max_response_bytes = 5;
-    let error = NetworkClient::new().unwrap().navigate(&request).unwrap_err();
+    let error = NetworkClient::new()
+        .unwrap()
+        .navigate(&request)
+        .unwrap_err();
     server.join().unwrap();
     assert!(matches!(
         error,
@@ -138,7 +148,11 @@ fn enforces_decoded_response_limit() {
 #[test]
 fn reuses_fresh_cache_entry_without_second_request() {
     let (base, server) = serve(1, |_, _| {
-        response("200 OK", &[("Cache-Control", "public, max-age=60")], b"once")
+        response(
+            "200 OK",
+            &[("Cache-Control", "public, max-age=60")],
+            b"once",
+        )
     });
     let client = NetworkClient::new().unwrap();
     let request = NavigationRequest::get(LexUrl::parse(&base).unwrap());
