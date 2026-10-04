@@ -23,15 +23,21 @@ fn attribute_and_character_data_mutations_are_explicit() {
     document.append_child(element, text).unwrap();
 
     let inserted = document.set_attribute(element, "ID", "first").unwrap();
-    assert!(matches!(&inserted[0], MutationRecord::AttributeChanged { old_value: None, new_value: Some(value), .. } if value == "first"));
+    assert!(
+        matches!(&inserted[0], MutationRecord::AttributeChanged { old_value: None, new_value: Some(value), .. } if value == "first")
+    );
     let replaced = document.set_attribute(element, "id", "second").unwrap();
-    assert!(matches!(&replaced[0], MutationRecord::AttributeChanged { old_value: Some(value), .. } if value == "first"));
+    assert!(
+        matches!(&replaced[0], MutationRecord::AttributeChanged { old_value: Some(value), .. } if value == "first")
+    );
     assert_eq!(document.attribute(element, "Id").unwrap(), Some("second"));
     assert_eq!(document.remove_attribute(element, "ID").unwrap().len(), 1);
     assert_eq!(document.attribute(element, "id").unwrap(), None);
 
     let changed = document.set_character_data(text, "new").unwrap();
-    assert!(matches!(&changed[0], MutationRecord::CharacterDataChanged { old_value, new_value, .. } if old_value == "old" && new_value == "new"));
+    assert!(
+        matches!(&changed[0], MutationRecord::CharacterDataChanged { old_value, new_value, .. } if old_value == "old" && new_value == "new")
+    );
     assert_eq!(document.character_data(text).unwrap(), "new");
 }
 
@@ -49,7 +55,8 @@ fn set_text_content_detaches_old_nodes_without_invalidating_handles() {
 
 #[test]
 fn nested_preorder_is_deterministic() {
-    let document = Document::from_html_bytes(b"<div><p>one</p><p>two<span>three</span></p></div>").unwrap();
+    let document =
+        Document::from_html_bytes(b"<div><p>one</p><p>two<span>three</span></p></div>").unwrap();
     let tags: Vec<_> = document
         .preorder(document.root())
         .unwrap()
@@ -70,7 +77,9 @@ fn large_dom_keeps_handles_and_invariants_stable() {
     let mut handles = Vec::new();
     for index in 0..20_000 {
         let element = document.create_element("div");
-        document.set_attribute(element, "data-index", index.to_string()).unwrap();
+        document
+            .set_attribute(element, "data-index", index.to_string())
+            .unwrap();
         document.append_child(root, element).unwrap();
         handles.push(element);
     }
@@ -85,8 +94,20 @@ fn normal_invalid_calls_return_errors() {
     let mut document = Document::new();
     let text = document.create_text("x");
     let fragment = document.create_document_fragment();
-    assert!(matches!(document.append_child(text, fragment), Err(DomError::ParentCannotHaveChildren(_))));
-    assert!(matches!(document.detach(fragment), Err(DomError::HasNoParent(_))));
-    assert!(matches!(document.character_data(fragment), Err(DomError::NotCharacterData(_))));
-    assert!(matches!(document.preorder(NodeId(usize::MAX)), Err(DomError::MissingNode(_))));
+    assert!(matches!(
+        document.append_child(text, fragment),
+        Err(DomError::ParentCannotHaveChildren(_))
+    ));
+    assert!(matches!(
+        document.detach(fragment),
+        Err(DomError::HasNoParent(_))
+    ));
+    assert!(matches!(
+        document.character_data(fragment),
+        Err(DomError::NotCharacterData(_))
+    ));
+    assert!(matches!(
+        document.preorder(NodeId(usize::MAX)),
+        Err(DomError::MissingNode(_))
+    ));
 }

@@ -719,13 +719,18 @@ impl Document {
         self.preorder(self.root)
             .unwrap_or_default()
             .into_iter()
-            .filter(|id| matches!(&self.nodes[id.0].node, Node::Element(element) if predicate(element)))
+            .filter(
+                |id| matches!(&self.nodes[id.0].node, Node::Element(element) if predicate(element)),
+            )
             .collect()
     }
 }
 
 fn can_have_children(node: &Node) -> bool {
-    matches!(node, Node::Document | Node::DocumentFragment | Node::Element(_))
+    matches!(
+        node,
+        Node::Document | Node::DocumentFragment | Node::Element(_)
+    )
 }
 
 #[cfg(test)]
@@ -740,7 +745,9 @@ mod tests {
         let comment = document.create_comment("note");
         assert_eq!(document.root(), NodeId(0));
         assert_eq!((element, text, comment), (NodeId(1), NodeId(2), NodeId(3)));
-        assert!(matches!(&document.node(element).unwrap().node, Node::Element(data) if data.tag_name == "div"));
+        assert!(
+            matches!(&document.node(element).unwrap().node, Node::Element(data) if data.tag_name == "div")
+        );
     }
 
     #[test]
@@ -769,8 +776,12 @@ mod tests {
         let child = document.create_element("span");
         document.append_child(left, child).unwrap();
         let records = document.append_child(right, child).unwrap();
-        assert!(matches!(records[0], MutationRecord::ChildRemoved { parent, .. } if parent == left));
-        assert!(matches!(records[1], MutationRecord::ChildInserted { parent, .. } if parent == right));
+        assert!(
+            matches!(records[0], MutationRecord::ChildRemoved { parent, .. } if parent == left)
+        );
+        assert!(
+            matches!(records[1], MutationRecord::ChildInserted { parent, .. } if parent == right)
+        );
         assert_eq!(document.parent(child), Some(right));
     }
 
@@ -784,7 +795,10 @@ mod tests {
         document.append_child(fragment, one).unwrap();
         document.append_child(fragment, two).unwrap();
         document.append_child(parent, fragment).unwrap();
-        assert_eq!(document.node(fragment).unwrap().children, Vec::<NodeId>::new());
+        assert_eq!(
+            document.node(fragment).unwrap().children,
+            Vec::<NodeId>::new()
+        );
         assert_eq!(document.node(parent).unwrap().children, [one, two]);
     }
 
@@ -794,10 +808,22 @@ mod tests {
         let parent = document.create_element("div");
         let child = document.create_element("span");
         document.append_child(parent, child).unwrap();
-        assert!(matches!(document.append_child(child, parent), Err(DomError::HierarchyCycle { .. })));
-        assert!(matches!(document.append_child(NodeId(999), child), Err(DomError::MissingNode(_))));
-        assert!(matches!(document.remove_child(parent, document.root()), Err(DomError::ReferenceNotChild { .. })));
+        assert!(matches!(
+            document.append_child(child, parent),
+            Err(DomError::HierarchyCycle { .. })
+        ));
+        assert!(matches!(
+            document.append_child(NodeId(999), child),
+            Err(DomError::MissingNode(_))
+        ));
+        assert!(matches!(
+            document.remove_child(parent, document.root()),
+            Err(DomError::ReferenceNotChild { .. })
+        ));
         assert!(matches!(document.set_attribute(child, "id", "x"), Ok(_)));
-        assert!(matches!(document.set_attribute(document.root(), "id", "x"), Err(DomError::NotAnElement(_))));
+        assert!(matches!(
+            document.set_attribute(document.root(), "id", "x"),
+            Err(DomError::NotAnElement(_))
+        ));
     }
 }
