@@ -142,7 +142,7 @@ impl StyleEngine {
         self.computed.clear();
 
         let nodes = document.preorder(document.root()).unwrap_or_default();
-        let mut root_font_size = 16.0;
+        let mut root_rem_size = 16.0;
         let mut found_document_element = false;
 
         for node_id in nodes {
@@ -159,11 +159,11 @@ impl StyleEngine {
                 &specified,
                 parent_style.as_ref(),
                 &element.tag_name,
-                root_font_size,
+                root_rem_size,
             );
 
             if !found_document_element {
-                root_font_size = style.font_size;
+                root_rem_size = style.font_size;
                 found_document_element = true;
             }
             self.specified.insert(node_id, specified);
@@ -309,7 +309,7 @@ fn compute_style(
     specified: &SpecifiedStyle,
     parent: Option<&ComputedStyle>,
     tag_name: &str,
-    root_font_size: f32,
+    root_rem_size: f32,
 ) -> ComputedStyle {
     let initial = ComputedStyle::initial_values();
     let mut style = initial.clone();
@@ -329,7 +329,7 @@ fn compute_style(
         Property::FontSize,
         parent,
         &initial,
-        root_font_size,
+        root_rem_size,
     );
 
     apply_box_defaults(&mut style, tag_name);
@@ -342,7 +342,7 @@ fn compute_style(
                 property,
                 parent,
                 &initial,
-                root_font_size,
+                root_rem_size,
             );
         }
     }
@@ -355,7 +355,7 @@ fn apply_specified_property(
     property: Property,
     parent: Option<&ComputedStyle>,
     initial: &ComputedStyle,
-    root_font_size: f32,
+    root_rem_size: f32,
 ) {
     let Some(value) = specified.get(property) else {
         return;
@@ -375,9 +375,9 @@ fn apply_specified_property(
         }
         SpecifiedValue::Value(value) => {
             let context = ComputeContext {
-                parent_font: parent.map_or(initial.font_size, |style| style.font_size),
-                own_font: style.font_size,
-                root_font: root_font_size,
+                inherited_size: parent.map_or(initial.font_size, |style| style.font_size),
+                element_em: style.font_size,
+                root_rem: root_rem_size,
             };
             apply_value(style, property, value, &context);
         }

@@ -309,9 +309,9 @@ impl Default for ComputedStyle {
 }
 
 pub(crate) struct ComputeContext {
-    pub parent_font: f32,
-    pub own_font: f32,
-    pub root_font: f32,
+    pub inherited_size: f32,
+    pub element_em: f32,
+    pub root_rem: f32,
 }
 
 /// Checks property grammar before cascade winner selection. This preserves the
@@ -322,9 +322,9 @@ pub(crate) fn valid_specified(property: Property, specified: &SpecifiedValue) ->
         return true;
     };
     let context = ComputeContext {
-        parent_font: 16.0,
-        own_font: 16.0,
-        root_font: 16.0,
+        inherited_size: 16.0,
+        element_em: 16.0,
+        root_rem: 16.0,
     };
     match property {
         Property::Display => display(value).is_some(),
@@ -547,10 +547,10 @@ fn border_color(value: &CssValue) -> Option<Edges<Color>> {
 
 fn font_size(value: &CssValue, context: &ComputeContext) -> Option<f32> {
     let px = match value {
-        CssValue::Percentage(percent) => context.parent_font * percent / 100.0,
+        CssValue::Percentage(percent) => context.inherited_size * percent / 100.0,
         CssValue::Length(number, LengthUnit::Px) => *number,
-        CssValue::Length(number, LengthUnit::Em) => context.parent_font * number,
-        CssValue::Length(number, LengthUnit::Rem) => context.root_font * number,
+        CssValue::Length(number, LengthUnit::Em) => context.inherited_size * number,
+        CssValue::Length(number, LengthUnit::Rem) => context.root_rem * number,
         CssValue::Keyword(keyword) => match keyword.as_str() {
             "xx-small" => 9.0,
             "x-small" => 10.0,
@@ -624,7 +624,7 @@ fn line_height(value: &CssValue, context: &ComputeContext) -> Option<LineHeight>
             Some(LineHeight::Number(*number))
         }
         CssValue::Percentage(percent) if *percent >= 0.0 && percent.is_finite() => {
-            Some(LineHeight::Px(context.own_font * percent / 100.0))
+            Some(LineHeight::Px(context.element_em * percent / 100.0))
         }
         _ => match computed_length(value, context)? {
             LengthPercentage::Px(px) if px >= 0.0 => Some(LineHeight::Px(px)),
@@ -667,10 +667,10 @@ fn computed_length(value: &CssValue, context: &ComputeContext) -> Option<LengthP
     match value {
         CssValue::Length(number, LengthUnit::Px) => Some(LengthPercentage::Px(*number)),
         CssValue::Length(number, LengthUnit::Em) => {
-            Some(LengthPercentage::Px(*number * context.own_font))
+            Some(LengthPercentage::Px(*number * context.element_em))
         }
         CssValue::Length(number, LengthUnit::Rem) => {
-            Some(LengthPercentage::Px(*number * context.root_font))
+            Some(LengthPercentage::Px(*number * context.root_rem))
         }
         CssValue::Length(number, LengthUnit::Vw) => Some(LengthPercentage::ViewportWidth(*number)),
         CssValue::Length(number, LengthUnit::Vh) => Some(LengthPercentage::ViewportHeight(*number)),
