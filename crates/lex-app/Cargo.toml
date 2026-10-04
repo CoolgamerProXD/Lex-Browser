@@ -9,6 +9,7 @@ repository.workspace = true
 
 [dependencies]
 lex-ui = { path = "../lex-ui" }
+lex-render = { path = "../lex-render" }
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58", features = [

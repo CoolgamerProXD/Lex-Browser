@@ -14,10 +14,11 @@ The browser chrome communicates with an engine controller; it does not mutate re
 
 ## Current workspace
 
-- `lex-app`: executable and native platform boundary. Win32 messages are translated to testable Rust application state.
+- `lex-app`: executable and native platform boundary. Win32 messages are translated to testable Rust application state. It builds the temporary startup display list but does not call Direct2D directly.
 - `lex-ui`: platform-neutral browser chrome state and presentation copy.
+- `lex-render`: platform-independent display commands and `Renderer` contract, plus the target-gated Direct2D/DirectWrite implementation.
 
-Windows API access uses the `windows` crate solely for generated Win32 bindings. M1 uses GDI only as a bootstrap drawing surface. M2 will introduce a renderer trait and Direct2D/DirectWrite backend; engine crates will consume display commands and remain independent of Windows graphics APIs.
+Windows API access uses the `windows` crate solely for generated Win32 bindings. `DisplayList` supports frame clearing, filled rectangles, text, and balanced rectangular clip scopes. The Windows backend translates those operations to an HWND Direct2D render target and DirectWrite text formats. Future paint and layout crates will depend on display commands rather than native graphics APIs.
 
 ## Safety and lifecycle
 
@@ -27,4 +28,5 @@ The Win32 window owns one boxed `ApplicationState`. Its pointer is attached duri
 
 1. The repository remains cross-checkable on non-Windows hosts: Windows dependencies and implementation are target-gated.
 2. Engine subsystems become separate crates only when their first working behavior is implemented; empty placeholder crates are avoided.
-3. The initial renderer is deliberately not presented as the browser renderer. It proves native lifecycle and a paint surface only.
+3. M1's GDI text drawing was removed at M2. GDI remains only for Win32 `BeginPaint`/`EndPaint` validation; all visible drawing is performed through the renderer contract by Direct2D/DirectWrite.
+4. Display-list clip scopes are validated before rendering. Malformed command streams return a structured error instead of invoking a backend with invalid clip state.
