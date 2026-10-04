@@ -17,7 +17,7 @@ use cache::{CacheEntry, ResponseCache};
 pub use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::{
     blocking::{Client, Response},
-    header::{CONTENT_LENGTH, LOCATION},
+    header::LOCATION,
     StatusCode,
 };
 use thiserror::Error;
