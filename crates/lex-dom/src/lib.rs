@@ -575,7 +575,7 @@ impl Document {
             if let Some(parent) = record.parent {
                 if self
                     .node(parent)
-                    .is_none_or(|parent_record| !parent_record.children.contains(&id))
+                    .map_or(true, |parent_record| !parent_record.children.contains(&id))
                 {
                     errors.push(InvariantError {
                         node: id,
