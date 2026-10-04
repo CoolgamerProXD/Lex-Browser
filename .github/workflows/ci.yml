@@ -7,6 +7,7 @@ permissions:
 jobs:
   rust:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -18,4 +19,10 @@ jobs:
       - run: cargo fmt --check
       - run: cargo check --workspace
       - run: cargo test --workspace
-      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Clippy
+        shell: bash
+        run: |
+          if ! cargo clippy --workspace --all-targets -- -D warnings 2>clippy-errors.txt; then
+            while IFS= read -r line; do echo "::error::$line"; done < clippy-errors.txt
+            exit 1
+          fi
