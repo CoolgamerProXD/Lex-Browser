@@ -133,7 +133,9 @@ impl Renderer for Direct2DRenderer {
                     text,
                     bounds,
                     style,
-                } => self.draw_text(text, *bounds, style).map_err(RenderError::from)?,
+                } => self
+                    .draw_text(text, *bounds, style)
+                    .map_err(RenderError::from)?,
                 DisplayCommand::PushClip(rect) => unsafe {
                     self.target
                         .PushAxisAlignedClip(&to_rect(*rect), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
