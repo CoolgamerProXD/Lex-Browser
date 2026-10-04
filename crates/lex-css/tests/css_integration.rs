@@ -8,7 +8,7 @@ const CSS: &str = include_str!("fixtures/article.css");
 fn fixture_flows_from_html_through_dom_and_style() {
     let document = Document::from_html_bytes(HTML).unwrap();
     let stylesheet = parse(CSS);
-    assert!(stylesheet.errors.is_empty());
+    assert_eq!(stylesheet.errors, []);
     let title = document.element_by_id("title").unwrap();
     let style = compute_style(&document, title, &[stylesheet]);
     assert_eq!(
