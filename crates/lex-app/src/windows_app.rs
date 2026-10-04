@@ -42,7 +42,7 @@ pub(super) fn run() -> Result<()> {
         lpfnWndProc: Some(window_proc),
         hInstance: instance.into(),
         hCursor: unsafe { LoadCursorW(None, IDC_ARROW)? },
-        hbrBackground: HBRUSH((COLOR_WINDOW.0 + 1) as isize),
+        hbrBackground: HBRUSH((COLOR_WINDOW.0 + 1) as usize as *mut core::ffi::c_void),
         lpszClassName: class_name,
         ..Default::default()
     };
