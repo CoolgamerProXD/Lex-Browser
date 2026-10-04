@@ -553,6 +553,7 @@ fn parse_selector_list(tokens: &[Token], source: &str) -> Vec<Selector> {
     }
     out
 }
+#[allow(clippy::too_many_lines)]
 fn parse_selector(input: &[Token], _source: &str) -> Option<Selector> {
     let mut t = input.to_vec();
     trim_ws(&mut t);
