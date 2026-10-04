@@ -832,7 +832,7 @@ mod tests {
         let s = parse("a { broken; color: red } ??? { x:y } p { width: 2px }");
         assert_eq!(s.rules.len(), 2);
         assert_eq!(s.rules[0].declarations.len(), 1);
-        assert!(!s.errors.is_empty());
+        assert_ne!(s.errors, []);
         assert_eq!(s.rules[1].declarations[0].name, "width");
     }
     #[test]

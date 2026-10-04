@@ -43,7 +43,7 @@ fn source_order_specificity_and_importance_are_deterministic() {
 #[test]
 fn malformed_fixture_recovers_without_panicking() {
     let sheet = parse("h1 { color red; width: 10px; } [ { bad:yes } p { display:block }");
-    assert!(!sheet.errors.is_empty());
+    assert_ne!(sheet.errors, []);
     assert!(sheet
         .rules
         .iter()
