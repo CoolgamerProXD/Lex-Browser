@@ -117,8 +117,9 @@ unsafe extern "system" fn window_proc(
             LRESULT(0)
         }
         WM_SIZE if !data.is_null() => {
-            let width = (lparam.0 & 0xffff) as u32;
-            let height = ((lparam.0 >> 16) & 0xffff) as u32;
+            let (low_word, high_word) = lparam_words(lparam);
+            let width = u32::from(low_word);
+            let height = u32::from(high_word);
             unsafe {
                 (*data).application.resized(width, height);
                 if let Some(renderer) = &mut (*data).renderer {
@@ -130,15 +131,16 @@ unsafe extern "system" fn window_proc(
             LRESULT(0)
         }
         WM_MOUSEMOVE if !data.is_null() => {
-            unsafe {
-                (*data)
-                    .application
-                    .pointer_moved((lparam.0 as i16) as i32, ((lparam.0 >> 16) as i16) as i32);
-            }
+            let (low_word, high_word) = lparam_words(lparam);
+            let x = i32::from(i16::from_ne_bytes(low_word.to_ne_bytes()));
+            let y = i32::from(i16::from_ne_bytes(high_word.to_ne_bytes()));
+            unsafe { (*data).application.pointer_moved(x, y) };
             LRESULT(0)
         }
         WM_KEYDOWN if !data.is_null() => {
-            unsafe { (*data).application.key_pressed(wparam.0 as u16) };
+            let bytes = wparam.0.to_ne_bytes();
+            let virtual_key = u16::from_ne_bytes([bytes[0], bytes[1]]);
+            unsafe { (*data).application.key_pressed(virtual_key) };
             LRESULT(0)
         }
         WM_PAINT => {
@@ -164,6 +166,14 @@ unsafe extern "system" fn window_proc(
         }
         _ => unsafe { DefWindowProcW(window, message, wparam, lparam) },
     }
+}
+
+fn lparam_words(lparam: LPARAM) -> (u16, u16) {
+    let bytes = lparam.0.to_ne_bytes();
+    (
+        u16::from_ne_bytes([bytes[0], bytes[1]]),
+        u16::from_ne_bytes([bytes[2], bytes[3]]),
+    )
 }
 
 unsafe fn paint(window: HWND, data: *mut WindowData) {
