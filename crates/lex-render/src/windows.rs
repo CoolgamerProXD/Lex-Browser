@@ -38,7 +38,7 @@ impl Direct2DRenderer {
     /// cannot be initialized.
     pub fn new(window: HWND, width: u32, height: u32) -> Result<Self, RenderError> {
         let factory: ID2D1Factory = unsafe {
-            D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, None).map_err(render_error)?
+            D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, None).map_err(RenderError::from)?
         };
         let target_properties = D2D1_RENDER_TARGET_PROPERTIES {
             r#type: D2D1_RENDER_TARGET_TYPE_DEFAULT,
@@ -59,10 +59,10 @@ impl Direct2DRenderer {
         let target = unsafe {
             factory
                 .CreateHwndRenderTarget(&target_properties, &window_properties)
-                .map_err(render_error)?
+                .map_err(RenderError::from)?
         };
         let write_factory: IDWriteFactory =
-            unsafe { DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED).map_err(render_error)? };
+            unsafe { DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED).map_err(RenderError::from)? };
         Ok(Self {
             target,
             write_factory,
@@ -112,7 +112,7 @@ impl Renderer for Direct2DRenderer {
         if width == 0 || height == 0 {
             return Ok(());
         }
-        unsafe { self.target.Resize(&D2D_SIZE_U { width, height }) }.map_err(render_error)
+        unsafe { self.target.Resize(&D2D_SIZE_U { width, height }) }.map_err(RenderError::from)
     }
 
     fn render(&mut self, list: &DisplayList) -> Result<(), RenderError> {
@@ -127,13 +127,13 @@ impl Renderer for Direct2DRenderer {
                     self.target.Clear(Some(&to_color(*color)));
                 },
                 DisplayCommand::FillRect { rect, color } => {
-                    self.fill_rect(*rect, *color).map_err(render_error)?;
+                    self.fill_rect(*rect, *color).map_err(RenderError::from)?;
                 }
                 DisplayCommand::DrawText {
                     text,
                     bounds,
                     style,
-                } => self.draw_text(text, *bounds, style).map_err(render_error)?,
+                } => self.draw_text(text, *bounds, style).map_err(RenderError::from)?,
                 DisplayCommand::PushClip(rect) => unsafe {
                     self.target
                         .PushAxisAlignedClip(&to_rect(*rect), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
@@ -141,7 +141,7 @@ impl Renderer for Direct2DRenderer {
                 DisplayCommand::PopClip => unsafe { self.target.PopAxisAlignedClip() },
             }
         }
-        unsafe { self.target.EndDraw(None, None) }.map_err(render_error)
+        unsafe { self.target.EndDraw(None, None) }.map_err(RenderError::from)
     }
 }
 
@@ -167,6 +167,8 @@ fn wide(value: &str) -> Vec<u16> {
     value.encode_utf16().chain(Some(0)).collect()
 }
 
-fn render_error(error: windows::core::Error) -> RenderError {
-    RenderError(format!("Direct2D/DirectWrite error: {error}"))
+impl From<windows::core::Error> for RenderError {
+    fn from(error: windows::core::Error) -> Self {
+        Self(format!("Direct2D/DirectWrite error: {error}"))
+    }
 }
