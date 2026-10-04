@@ -28,7 +28,7 @@ pub(crate) fn apply_primary_defaults(style: &mut ComputedStyle, tag_name: &str) 
             style.font_size *= 1.17;
             style.font_weight = FontWeight::Bold;
         }
-        "h4" => style.font_weight = FontWeight::Bold,
+        "h4" | "strong" => style.font_weight = FontWeight::Bold,
         "h5" => {
             style.font_size *= 0.83;
             style.font_weight = FontWeight::Bold;
@@ -37,7 +37,6 @@ pub(crate) fn apply_primary_defaults(style: &mut ComputedStyle, tag_name: &str) 
             style.font_size *= 0.67;
             style.font_weight = FontWeight::Bold;
         }
-        "strong" => style.font_weight = FontWeight::Bold,
         "a" => style.color = LINK_BLUE,
         _ => {}
     }
