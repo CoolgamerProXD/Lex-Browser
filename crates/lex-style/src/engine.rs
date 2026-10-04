@@ -375,9 +375,9 @@ fn apply_specified_property(
         }
         SpecifiedValue::Value(value) => {
             let context = ComputeContext {
-                parent_font_size: parent.map_or(initial.font_size, |style| style.font_size),
-                own_font_size: style.font_size,
-                root_font_size,
+                parent_font: parent.map_or(initial.font_size, |style| style.font_size),
+                own_font: style.font_size,
+                root_font: root_font_size,
             };
             apply_value(style, property, value, &context);
         }
