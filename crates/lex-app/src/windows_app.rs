@@ -186,7 +186,9 @@ unsafe fn paint(window: HWND, data: *mut WindowData) {
             }
         }
     }
-    unsafe { EndPaint(window, &paint) };
+    unsafe {
+        let _ = EndPaint(window, &paint);
+    }
 }
 
 fn bootstrap_display_list() -> DisplayList {
