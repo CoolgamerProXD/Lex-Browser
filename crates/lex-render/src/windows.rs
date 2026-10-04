@@ -31,6 +31,10 @@ pub struct Direct2DRenderer {
 
 impl Direct2DRenderer {
     /// Creates a hardware-accelerated render target associated with `window`.
+    ///
+    /// # Errors
+    /// Returns an error when Direct2D, DirectWrite, or the window render target
+    /// cannot be initialized.
     pub fn new(window: HWND, width: u32, height: u32) -> Result<Self, RenderError> {
         let factory: ID2D1Factory = unsafe {
             D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, None).map_err(render_error)?
