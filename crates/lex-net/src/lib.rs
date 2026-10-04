@@ -160,10 +160,7 @@ pub enum NetworkError {
     #[error("redirect loop detected at `{0}`")]
     RedirectLoop(LexUrl),
     #[error("refused HTTPS to HTTP redirect from `{from}` to `{to}`")]
-    InsecureRedirect {
-        from: Box<LexUrl>,
-        to: Box<LexUrl>,
-    },
+    InsecureRedirect { from: Box<LexUrl>, to: Box<LexUrl> },
     #[error("HTTP transport or TLS validation failed: {0}")]
     Transport(#[source] Box<reqwest::Error>),
     #[error("response declared {declared} bytes, exceeding limit {limit}")]
