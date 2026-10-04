@@ -166,11 +166,12 @@ pub fn tokenize(source: &str) -> Vec<Token> {
     }
     out
 }
+
 fn push(out: &mut Vec<Token>, kind: TokenKind, start: usize, end: usize) {
     out.push(Token {
         kind,
         span: SourceSpan { start, end },
-    })
+    });
 }
 fn is_name_start(c: char) -> bool {
     c.is_ascii_alphabetic() || c == '_' || !c.is_ascii()
