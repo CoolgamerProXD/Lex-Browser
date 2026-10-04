@@ -1,0 +1,6 @@
+article > .title[data-kind="feature"] {
+  display: block;
+  font-size: 24px;
+  color: #2457d6;
+}
+article p { margin: 8px; }

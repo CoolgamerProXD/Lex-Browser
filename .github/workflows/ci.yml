@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - name: Check
+        shell: bash
+        run: |
+          if ! cargo check --workspace 2>check-errors.txt; then
+            grep -E "error(\\[|:)|-->|^[[:space:]]*\\|" check-errors.txt | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit 1
+          fi
+      - run: cargo test --workspace
+      - name: Clippy
+        shell: bash
+        run: |
+          if ! cargo clippy --workspace --all-targets -- -D warnings 2>clippy-errors.txt; then
+            while IFS= read -r line; do echo "::error::$line"; done < clippy-errors.txt
+            exit 1
+          fi

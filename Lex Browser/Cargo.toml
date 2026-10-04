@@ -1,0 +1,15 @@
+[package]
+name = "lex-browser"
+description = "Runnable development entry point for the Lex browser engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+lex-css = { path = "../crates/lex-css" }
+lex-dom = { path = "../crates/lex-dom" }
+
+[lints]
+workspace = true
