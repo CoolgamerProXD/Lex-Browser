@@ -31,7 +31,11 @@ fn large_input_completes_and_preserves_content() {
 #[test]
 fn arbitrary_truncation_points_do_not_panic() {
     let source = "<!doctype html><!-- comment --><html><body><div a='b'>&amp;<script>x<y</script></div></body></html>";
-    for end in source.char_indices().map(|(offset, _)| offset).chain([source.len()]) {
+    for end in source
+        .char_indices()
+        .map(|(offset, _)| offset)
+        .chain([source.len()])
+    {
         let _ = parse(&source[..end]);
         let _ = Tokenizer::new(&source[..end]).tokenize();
     }

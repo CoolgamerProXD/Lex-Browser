@@ -145,10 +145,20 @@ impl Parser {
                     append(&mut document, parent, Node::Comment(data), Some(span));
                 }
                 Token::Text { data, span } => {
-                    append_text(&mut document, *open.last().unwrap_or(&document.root), data, span);
+                    append_text(
+                        &mut document,
+                        *open.last().unwrap_or(&document.root),
+                        data,
+                        span,
+                    );
                 }
                 Token::CharacterReference { value, span, .. } => {
-                    append_text(&mut document, *open.last().unwrap_or(&document.root), value, span);
+                    append_text(
+                        &mut document,
+                        *open.last().unwrap_or(&document.root),
+                        value,
+                        span,
+                    );
                 }
                 Token::StartTag {
                     name,
@@ -190,12 +200,7 @@ impl Parser {
     }
 }
 
-fn append(
-    document: &mut Document,
-    parent: NodeId,
-    node: Node,
-    span: Option<SourceSpan>,
-) -> NodeId {
+fn append(document: &mut Document, parent: NodeId, node: Node, span: Option<SourceSpan>) -> NodeId {
     let id = NodeId(document.nodes.len());
     document.nodes.push(NodeRecord {
         node,
@@ -253,7 +258,10 @@ fn close_if_open(
     offset: usize,
     message: &str,
 ) {
-    if let Some(index) = open.iter().rposition(|id| element_name(document, *id) == Some(name)) {
+    if let Some(index) = open
+        .iter()
+        .rposition(|id| element_name(document, *id) == Some(name))
+    {
         open.truncate(index);
         document.errors.push(ParseError {
             offset,
@@ -263,7 +271,10 @@ fn close_if_open(
 }
 
 fn close_element(document: &mut Document, open: &mut Vec<NodeId>, name: &str, offset: usize) {
-    let Some(index) = open.iter().rposition(|id| element_name(document, *id) == Some(name)) else {
+    let Some(index) = open
+        .iter()
+        .rposition(|id| element_name(document, *id) == Some(name))
+    else {
         document.errors.push(ParseError {
             offset,
             message: format!("ignored unmatched closing tag `</{name}>`"),
@@ -347,7 +358,10 @@ mod tests {
         let div = document.first_element("div").unwrap();
         assert_eq!(document.text_content(div), "Hello & Lex");
         let children = &document.node(div).unwrap().children;
-        assert!(matches!(document.node(children[0]).unwrap().node, Node::Text(_)));
+        assert!(matches!(
+            document.node(children[0]).unwrap().node,
+            Node::Text(_)
+        ));
         assert!(document.first_element("span").is_some());
     }
 
@@ -361,15 +375,28 @@ mod tests {
     #[test]
     fn implicitly_closes_paragraphs_and_list_items() {
         let document = parse("<p>one<div>two</div><ul><li>a<li>b</ul>");
-        assert!(document.errors().iter().any(|error| error.message.contains("<p>")));
-        assert_eq!(document.nodes().iter().filter(|node| matches!(&node.node, Node::Element(element) if element.name == "li")).count(), 2);
+        assert!(document
+            .errors()
+            .iter()
+            .any(|error| error.message.contains("<p>")));
+        assert_eq!(
+            document
+                .nodes()
+                .iter()
+                .filter(|node| matches!(&node.node, Node::Element(element) if element.name == "li"))
+                .count(),
+            2
+        );
     }
 
     #[test]
     fn handles_common_document_structures() {
         let source = "<!doctype html><html><head><title>T</title><meta charset=utf-8><style>x{}</style></head><body><h1>H</h1><p>P</p><a href=/x>A</a><img src=x><ul><li>L</li></ul><table><tr><td>C</td></tr></table><form><input></form><script>x<y</script></body></html>";
         let document = parse(source);
-        for name in ["html", "head", "title", "meta", "style", "body", "h1", "p", "a", "img", "ul", "li", "table", "tr", "td", "form", "input", "script"] {
+        for name in [
+            "html", "head", "title", "meta", "style", "body", "h1", "p", "a", "img", "ul", "li",
+            "table", "tr", "td", "form", "input", "script",
+        ] {
             assert!(document.first_element(name).is_some(), "missing {name}");
         }
     }

@@ -15,16 +15,28 @@ pub struct Attribute {
 /// Lex HTML token.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Token {
-    Doctype { name: String, span: SourceSpan },
+    Doctype {
+        name: String,
+        span: SourceSpan,
+    },
     StartTag {
         name: String,
         attributes: Vec<Attribute>,
         self_closing: bool,
         span: SourceSpan,
     },
-    EndTag { name: String, span: SourceSpan },
-    Text { data: String, span: SourceSpan },
-    Comment { data: String, span: SourceSpan },
+    EndTag {
+        name: String,
+        span: SourceSpan,
+    },
+    Text {
+        data: String,
+        span: SourceSpan,
+    },
+    Comment {
+        data: String,
+        span: SourceSpan,
+    },
     CharacterReference {
         source: String,
         value: String,
@@ -184,7 +196,9 @@ impl<'a> Tokenizer<'a> {
         self.skip_whitespace();
         let name_start = self.position;
         while self.position < self.source.len()
-            && !self.peek_char().is_some_and(|character| character.is_whitespace() || character == '>')
+            && !self
+                .peek_char()
+                .is_some_and(|character| character.is_whitespace() || character == '>')
         {
             self.advance_char();
         }
@@ -237,8 +251,14 @@ impl<'a> Tokenizer<'a> {
             } else {
                 String::new()
             };
-            if attributes.iter().any(|attribute: &Attribute| attribute.name == attribute_name) {
-                self.error(attribute_start, format!("duplicate attribute `{attribute_name}`"));
+            if attributes
+                .iter()
+                .any(|attribute: &Attribute| attribute.name == attribute_name)
+            {
+                self.error(
+                    attribute_start,
+                    format!("duplicate attribute `{attribute_name}`"),
+                );
             } else {
                 attributes.push(Attribute {
                     name: attribute_name,
@@ -311,7 +331,10 @@ impl<'a> Tokenizer<'a> {
             self.position = end;
         }
         if self.position == self.source.len() {
-            self.error(start, format!("`{element}` text reached end of input without a closing tag"));
+            self.error(
+                start,
+                format!("`{element}` text reached end of input without a closing tag"),
+            );
             self.text_mode = TextMode::Data;
             self.raw_element = None;
         } else {
@@ -325,7 +348,10 @@ impl<'a> Tokenizer<'a> {
         let (source, value, consumed, valid) = parse_reference(self.remaining());
         self.position += consumed;
         if !valid {
-            self.error(start, format!("unknown or invalid character reference `{source}`"));
+            self.error(
+                start,
+                format!("unknown or invalid character reference `{source}`"),
+            );
         }
         self.output.tokens.push(Token::CharacterReference {
             source,
@@ -444,8 +470,11 @@ fn parse_reference(source: &str) -> (String, String, usize, bool) {
     }
     let raw = &source[..end];
     let name = &raw[1..raw.len() - 1];
-    let decoded = if let Some(number) = name.strip_prefix("#x").or_else(|| name.strip_prefix("#X")) {
-        u32::from_str_radix(number, 16).ok().and_then(char::from_u32)
+    let decoded = if let Some(number) = name.strip_prefix("#x").or_else(|| name.strip_prefix("#X"))
+    {
+        u32::from_str_radix(number, 16)
+            .ok()
+            .and_then(char::from_u32)
     } else if let Some(number) = name.strip_prefix('#') {
         number.parse::<u32>().ok().and_then(char::from_u32)
     } else {
@@ -476,14 +505,18 @@ mod tests {
         assert!(matches!(&output.tokens[1], Token::Comment { data, .. } if data == "x"));
         assert!(matches!(&output.tokens[2], Token::StartTag { name, .. } if name == "div"));
         assert!(matches!(&output.tokens[3], Token::Text { data, .. } if data == "a"));
-        assert!(matches!(&output.tokens[4], Token::CharacterReference { value, .. } if value == "&"));
+        assert!(
+            matches!(&output.tokens[4], Token::CharacterReference { value, .. } if value == "&")
+        );
         assert!(matches!(&output.tokens[6], Token::EndTag { name, .. } if name == "div"));
     }
 
     #[test]
     fn parses_quoted_unquoted_boolean_and_entity_attributes() {
         let output = Tokenizer::new("<A HREF='/x?a=1&amp;b=2' title=hello disabled>").tokenize();
-        let Token::StartTag { attributes, .. } = &output.tokens[0] else { panic!("start tag") };
+        let Token::StartTag { attributes, .. } = &output.tokens[0] else {
+            panic!("start tag")
+        };
         assert_eq!(attributes[0].name, "href");
         assert_eq!(attributes[0].value, "/x?a=1&b=2");
         assert_eq!(attributes[1].value, "hello");
@@ -493,10 +526,14 @@ mod tests {
     #[test]
     fn decodes_named_numeric_and_unknown_references_safely() {
         let output = Tokenizer::new("&lt;&#65;&#x1f642;&unknown;").tokenize();
-        let values: Vec<_> = output.tokens.iter().filter_map(|token| match token {
-            Token::CharacterReference { value, .. } => Some(value.as_str()),
-            _ => None,
-        }).collect();
+        let values: Vec<_> = output
+            .tokens
+            .iter()
+            .filter_map(|token| match token {
+                Token::CharacterReference { value, .. } => Some(value.as_str()),
+                _ => None,
+            })
+            .collect();
         assert_eq!(values, ["<", "A", "🙂", "&unknown;"]);
         assert_eq!(output.errors.len(), 1);
     }
@@ -510,8 +547,11 @@ mod tests {
 
     #[test]
     fn raw_text_does_not_parse_markup_or_entities() {
-        let output = Tokenizer::new("<script>if (a < b) x = '&amp;';</SCRIPT><style>a>b{}</style>").tokenize();
-        assert!(matches!(&output.tokens[1], Token::Text { data, .. } if data.contains("< b") && data.contains("&amp;")));
+        let output = Tokenizer::new("<script>if (a < b) x = '&amp;';</SCRIPT><style>a>b{}</style>")
+            .tokenize();
+        assert!(
+            matches!(&output.tokens[1], Token::Text { data, .. } if data.contains("< b") && data.contains("&amp;"))
+        );
         assert!(matches!(&output.tokens[4], Token::Text { data, .. } if data == "a>b{}"));
     }
 
