@@ -104,7 +104,6 @@ impl SpecifiedStyle {
         self.values.get(&property)
     }
 
-    #[must_use]
     pub fn iter(&self) -> impl Iterator<Item = (Property, &SpecifiedValue)> {
         self.values
             .iter()
