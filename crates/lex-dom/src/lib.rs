@@ -439,9 +439,8 @@ impl Document {
     ) -> Result<MutationBatch, DomError> {
         let value = value.into();
         let record = self.record_mut(node)?;
-        let target = match &mut record.node {
-            Node::Text(data) | Node::Comment(data) => data,
-            _ => return Err(DomError::NotCharacterData(node)),
+        let (Node::Text(target) | Node::Comment(target)) = &mut record.node else {
+            return Err(DomError::NotCharacterData(node));
         };
         let old_value = std::mem::replace(target, value.clone());
         Ok(vec![MutationRecord::CharacterDataChanged {
