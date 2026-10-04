@@ -12,7 +12,7 @@ fn converts_m4_document_and_preserves_spans_and_queries() {
     assert_eq!(document.text_content(target).unwrap(), "world");
     assert_eq!(document.elements_by_class_name("readable").len(), 2);
     assert!(document.node(target).unwrap().source_span.is_some());
-    assert!(document.validate_invariants().is_empty());
+    assert_eq!(document.validate_invariants(), []);
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn large_dom_keeps_handles_and_invariants_stable() {
     assert_eq!(handles[0], NodeId(2));
     assert_eq!(handles[19_999], NodeId(20_001));
     assert_eq!(document.node_count(), 20_002);
-    assert!(document.validate_invariants().is_empty());
+    assert_eq!(document.validate_invariants(), []);
 }
 
 #[test]
